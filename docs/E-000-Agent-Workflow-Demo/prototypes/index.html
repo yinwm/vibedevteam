@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent Workflow Demo Prototype</title>
+    <style>
+      :root {
+        --bg: #0d1221;
+        --panel: rgba(20, 27, 45, 0.92);
+        --card: rgba(26, 35, 60, 0.92);
+        --muted: #9fb2d8;
+        --text: #eef2fb;
+        --accent: #6dd5ed;
+        --accent-2: #7f7bff;
+        --danger: #ff6b81;
+        --ok: #5be8b3;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(1200px 800px at 10% 15%, rgba(109, 213, 237, 0.12), transparent 55%),
+          radial-gradient(1000px 700px at 90% 15%, rgba(127, 123, 255, 0.18), transparent 50%), var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 36px 18px 80px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0.6px;
+      }
+      .pill {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: var(--muted);
+        letter-spacing: 0.3px;
+      }
+      .status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+      }
+      .badge.ok {
+        color: var(--ok);
+        border-color: rgba(91, 232, 179, 0.4);
+      }
+      .badge.err {
+        color: var(--danger);
+        border-color: rgba(255, 107, 129, 0.4);
+      }
+      .badge.wait {
+        color: #ffd166;
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: linear-gradient(135deg, rgba(109, 213, 237, 0.2), rgba(127, 123, 255, 0.25));
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+      button.secondary {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      button.danger {
+        background: linear-gradient(135deg, rgba(255, 107, 129, 0.32), rgba(255, 107, 129, 0.12));
+        border-color: rgba(255, 107, 129, 0.4);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .timeline {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0;
+        display: grid;
+        gap: 10px;
+      }
+      .step {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        background: var(--card);
+      }
+      .step strong {
+        display: block;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+      }
+      .step small {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .step.done {
+        border-color: rgba(91, 232, 179, 0.4);
+        box-shadow: 0 0 0 1px rgba(91, 232, 179, 0.14);
+      }
+      .step.error {
+        border-color: rgba(255, 107, 129, 0.4);
+      }
+      .link-list {
+        display: grid;
+        gap: 8px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .link-item {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--border);
+      }
+      .link-item a {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .link-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .alert {
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 10px;
+        font-size: 13px;
+      }
+      .alert.error {
+        background: rgba(255, 107, 129, 0.08);
+        border: 1px solid rgba(255, 107, 129, 0.35);
+        color: var(--danger);
+      }
+      .alert.ok {
+        background: rgba(91, 232, 179, 0.08);
+        border: 1px solid rgba(91, 232, 179, 0.35);
+        color: var(--ok);
+      }
+      .footer {
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Agent Workflow Demo · UI 证据（Gate B）</h1>
+        <div class="pill">Epic: E-000 · Slice-001 · Story → Slice → Task 追溯</div>
+      </header>
+
+      <div class="grid">
+        <div class="card">
+          <div class="status-row">
+            <div>
+              <div class="muted">当前状态</div>
+              <div id="stateBadge" class="badge">空态 · 等待开始</div>
+            </div>
+            <div class="pill" id="gateHint">Gate B: UI 证据</div>
+          </div>
+          <div id="stateCopy" class="muted">点击“展示成功态”体验主路径。</div>
+          <div class="actions" style="margin-top: 12px;">
+            <button id="btnSuccess">展示成功态</button>
+            <button id="btnError" class="danger">模拟失败</button>
+            <button id="btnReset" class="secondary">重置为空态</button>
+          </div>
+          <div id="alertBox" class="alert" style="display: none;"></div>
+          <div class="footer">空态/成功态/失败态均在此页演示，满足 Gate B 的 UI 证据要求。</div>
+        </div>
+
+        <div class="card">
+          <h2>主路径（Slice-001 闭环 · 对应 Story-001 AC）</h2>
+          <ul class="timeline" id="timeline">
+            <li class="step" data-step="open">
+              <strong>Step 1 · 打开原型（空态）</strong>
+              <small>看到提示“点击开始 Demo”。</small>
+            </li>
+            <li class="step" data-step="load">
+              <strong>Step 2 · 模拟加载</strong>
+              <small>按钮置灰，显示 Building sample...</small>
+            </li>
+            <li class="step" data-step="success">
+              <strong>Step 3 · 展示成功态</strong>
+              <small>显示文档链接与 Traceability。</small>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 14px;">
+          <h2>文档链接（Traceability）</h2>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="../prd/PRD-E-000-v0.md" target="_blank">PRD-E-000-v0</a>
+            <span>目标/范围、UI 证据、AC</span>
+          </li>
+          <li class="link-item">
+            <a href="../story/STORY-E-000-001-demo.md" target="_blank">STORY-E-000-001 Demo</a>
+            <span>主路径、状态机、AC</span>
+          </li>
+          <li class="link-item">
+            <a href="../slice/SLICE-E-000-001.md" target="_blank">SLICE-E-000-001</a>
+            <span>闭环定义与验收方式</span>
+          </li>
+          <li class="link-item">
+            <a href="../tech/TECH-E-000-v0.md" target="_blank">TECH-E-000-v0</a>
+            <span>实现思路：纯静态原型 + 文档</span>
+          </li>
+          <li class="link-item">
+            <a href="../task/TASK-E-000-DOC-001.md" target="_blank">TASK-E-000-DOC-001</a>
+            <span>交付示例文档与原型</span>
+          </li>
+          <li class="link-item">
+            <a href="../proj/PROJ-E-000-v1.md" target="_blank">PROJ-E-000-v1</a>
+            <span>Story → Slice → Task 对齐表</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      const stateBadge = document.getElementById("stateBadge");
+      const stateCopy = document.getElementById("stateCopy");
+      const alertBox = document.getElementById("alertBox");
+      const timeline = document.getElementById("timeline").querySelectorAll(".step");
+      const btnSuccess = document.getElementById("btnSuccess");
+      const btnError = document.getElementById("btnError");
+      const btnReset = document.getElementById("btnReset");
+
+      let currentState = "empty";
+
+      const labels = {
+        empty: { text: "空态 · 等待开始", badge: "badge", copy: "点击“展示成功态”体验主路径。" },
+        loading: { text: "加载中 · Building sample...", badge: "badge wait", copy: "正在模拟加载，请稍候。" },
+        success: { text: "成功 · UI 证据就绪", badge: "badge ok", copy: "看到主路径与文档链接，Gate B/C 可通过。" },
+        error: { text: "失败 · 可重试", badge: "badge err", copy: "展示失败态，点击重试回到成功路径。" }
+      };
+
+      function updateTimeline(state) {
+        timeline.forEach((item) => {
+          item.classList.remove("done", "error");
+        });
+        if (state === "empty") return;
+        if (state === "loading") {
+          mark("open", "done");
+        } else if (state === "success") {
+          mark("open", "done");
+          mark("load", "done");
+          mark("success", "done");
+        } else if (state === "error") {
+          mark("open", "done");
+          mark("load", "error");
+        }
+      }
+
+      function mark(step, cls) {
+        const node = document.querySelector(`[data-step="${step}"]`);
+        if (node) node.classList.add(cls);
+      }
+
+      function setState(next) {
+        currentState = next;
+        const data = labels[next];
+        stateBadge.className = data.badge;
+        stateBadge.textContent = data.text;
+        stateCopy.textContent = data.copy;
+        alertBox.style.display = "none";
+
+        const disable = next === "loading";
+        btnSuccess.disabled = disable;
+        btnError.disabled = disable;
+        btnReset.disabled = disable;
+
+        if (next === "error") {
+          alertBox.textContent = "示例失败态：当前不可展示文档列表，可重试回到成功态。";
+          alertBox.className = "alert error";
+          alertBox.style.display = "block";
+        } else if (next === "success") {
+          alertBox.textContent = "示例成功态：UI 证据、文档链接与状态机均展示完毕。";
+          alertBox.className = "alert ok";
+          alertBox.style.display = "block";
+        }
+
+        updateTimeline(next);
+      }
+
+      function simulate(nextState) {
+        setState("loading");
+        setTimeout(() => setState(nextState), nextState === "success" ? 420 : 520);
+      }
+
+      btnSuccess.addEventListener("click", () => simulate("success"));
+      btnError.addEventListener("click", () => simulate("error"));
+      btnReset.addEventListener("click", () => setState("empty"));
+
+      // init
+      setState("empty");
+    </script>
+  </body>
+</html>

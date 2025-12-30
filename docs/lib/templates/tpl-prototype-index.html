@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prototype Template</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: #121a2b;
+        --text: #e6eefc;
+        --muted: #9ab0d5;
+        --accent: #5b8cff;
+        --danger: #ff5b6a;
+        --ok: #2bd576;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+          "Segoe UI Emoji";
+        background: radial-gradient(1200px 700px at 10% 10%, rgba(91, 140, 255, 0.20), transparent 55%),
+          radial-gradient(1000px 700px at 90% 30%, rgba(43, 213, 118, 0.12), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+      }
+      .title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        background: rgba(18, 26, 43, 0.9);
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin: 8px 0;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      select,
+      input {
+        width: 100%;
+        padding: 10px 10px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        outline: none;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+      button.primary {
+        background: linear-gradient(135deg, rgba(91, 140, 255, 1), rgba(91, 140, 255, 0.55));
+        border-color: rgba(91, 140, 255, 0.35);
+      }
+      button.danger {
+        background: linear-gradient(135deg, rgba(255, 91, 106, 1), rgba(255, 91, 106, 0.55));
+        border-color: rgba(255, 91, 106, 0.35);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .badge.ok {
+        color: var(--ok);
+        border-color: rgba(43, 213, 118, 0.35);
+      }
+      .badge.err {
+        color: var(--danger);
+        border-color: rgba(255, 91, 106, 0.35);
+      }
+      .panel {
+        min-height: 360px;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .status strong {
+        font-size: 13px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .box {
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 10px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      pre {
+        margin: 0;
+        font-size: 12px;
+        color: rgba(230, 238, 252, 0.9);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .footer {
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="title">
+        <h1>Prototype Template</h1>
+        <div class="hint">用于 PRD v0/v1 的 UI 证据：主路径 + 状态机 + 契约标注</div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>输入（Mock）</h2>
+
+          <div class="row">
+            <div style="flex: 1">
+              <label>选择器 A</label>
+              <select id="selectA">
+                <option value="">请选择</option>
+                <option value="a1">A1</option>
+                <option value="a2">A2</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex: 1">
+              <label>选择器 B</label>
+              <select id="selectB" disabled>
+                <option value="">先选 A</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="btnStart" class="primary" disabled>开始（主路径）</button>
+            <button id="btnReset">重置</button>
+          </div>
+
+          <div class="box">
+            <div class="muted">状态切换（用于演示空/加载/成功/失败）</div>
+            <div class="row" style="flex-wrap: wrap">
+              <button data-state="empty">空态</button>
+              <button data-state="loading">加载态</button>
+              <button data-state="success">成功态</button>
+              <button data-state="error">失败态</button>
+            </div>
+          </div>
+
+          <div class="footer">
+            Contract 提示：在 PRD/SLICE 里写明将来接口的 request/response/error code；这里先用 mock 数据演示。
+          </div>
+        </div>
+
+        <div class="card panel">
+          <div class="status">
+            <div>
+              <strong>视图状态：</strong>
+              <span id="statusText" class="badge">EMPTY</span>
+            </div>
+            <div class="muted" id="statusHint">请选择 A/B 后开始</div>
+          </div>
+
+          <div id="view"></div>
+
+          <div class="box">
+            <div class="muted">Mock 数据（可复制进 PRD 的“契约草案”）</div>
+            <pre id="mockJson"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const elA = document.getElementById("selectA");
+      const elB = document.getElementById("selectB");
+      const btnStart = document.getElementById("btnStart");
+      const btnReset = document.getElementById("btnReset");
+      const statusText = document.getElementById("statusText");
+      const statusHint = document.getElementById("statusHint");
+      const view = document.getElementById("view");
+      const mockJson = document.getElementById("mockJson");
+
+      const state = {
+        status: "EMPTY",
+        a: "",
+        b: "",
+        result: null,
+        error: null,
+      };
+
+      function setStatus(next, hint) {
+        state.status = next;
+        statusText.textContent = next;
+        statusText.className = "badge";
+        if (next === "SUCCESS") statusText.classList.add("ok");
+        if (next === "ERROR") statusText.classList.add("err");
+        statusHint.textContent = hint || "";
+        render();
+      }
+
+      function render() {
+        const canStart = !!state.a && !!state.b && state.status !== "LOADING";
+        btnStart.disabled = !canStart;
+
+        mockJson.textContent = JSON.stringify(
+          {
+            request: { a: state.a, b: state.b },
+            response: state.result,
+            error: state.error,
+          },
+          null,
+          2
+        );
+
+        if (state.status === "EMPTY") {
+          view.innerHTML =
+            '<div class="box"><div class="muted">空态：</div><div style="margin-top:6px">请选择必要输入后开始。</div></div>';
+          return;
+        }
+        if (state.status === "LOADING") {
+          view.innerHTML =
+            '<div class="box"><div class="muted">加载态：</div><div style="margin-top:6px">正在处理...（这里模拟异步任务/轮询/进度）。</div></div>';
+          return;
+        }
+        if (state.status === "SUCCESS") {
+          view.innerHTML =
+            '<div class="box"><div class="muted">成功态：</div><div style="margin-top:6px">已完成，可在这里展示结果摘要/下一步操作。</div></div>';
+          return;
+        }
+        if (state.status === "ERROR") {
+          view.innerHTML =
+            '<div class="box"><div class="muted">失败态：</div><div style="margin-top:6px">发生错误：' +
+            (state.error?.message || "未知错误") +
+            '</div><div class="row" style="margin-top:10px"><button class="primary" id="btnRetry">重试</button></div></div>';
+          const btnRetry = document.getElementById("btnRetry");
+          btnRetry.addEventListener("click", () => startFlow(true));
+          return;
+        }
+      }
+
+      function reset() {
+        state.a = "";
+        state.b = "";
+        state.result = null;
+        state.error = null;
+        elA.value = "";
+        elB.innerHTML = '<option value="">先选 A</option>';
+        elB.disabled = true;
+        setStatus("EMPTY", "请选择 A/B 后开始");
+      }
+
+      function hydrateBOptions(a) {
+        const options = a === "a1" ? ["b1", "b2"] : ["b3", "b4"];
+        elB.disabled = false;
+        elB.innerHTML =
+          '<option value="">请选择</option>' + options.map((v) => `<option value="${v}">${v}</option>`).join("");
+      }
+
+      function startFlow(isRetry) {
+        state.result = null;
+        state.error = null;
+        setStatus("LOADING", isRetry ? "重试中..." : "处理中...");
+
+        window.setTimeout(() => {
+          const shouldFail = state.a === "a2" && state.b === "b4";
+          if (shouldFail) {
+            state.error = { code: "E_DEMO_FAIL", message: "演示失败：当 a2+b4 时触发错误态" };
+            setStatus("ERROR", "可重试/可取消（由 PRD/SLICE 定义）");
+            return;
+          }
+
+          state.result = { ok: true, summary: `完成：a=${state.a}, b=${state.b}` };
+          setStatus("SUCCESS", "已完成（可展示后续动作/链接）");
+        }, 900);
+      }
+
+      elA.addEventListener("change", (e) => {
+        state.a = e.target.value;
+        state.b = "";
+        state.result = null;
+        state.error = null;
+        if (!state.a) {
+          reset();
+          return;
+        }
+        hydrateBOptions(state.a);
+        setStatus("EMPTY", "继续选择 B");
+      });
+
+      elB.addEventListener("change", (e) => {
+        state.b = e.target.value;
+        state.result = null;
+        state.error = null;
+        setStatus("EMPTY", state.b ? "可以开始" : "请选择 B");
+      });
+
+      btnStart.addEventListener("click", () => startFlow(false));
+      btnReset.addEventListener("click", reset);
+
+      document.querySelectorAll("button[data-state]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const v = btn.getAttribute("data-state");
+          state.result = null;
+          state.error = null;
+          if (v === "empty") setStatus("EMPTY", "切到空态");
+          if (v === "loading") setStatus("LOADING", "切到加载态（演示中）");
+          if (v === "success") {
+            state.result = { ok: true, summary: "演示成功态（非真实结果）" };
+            setStatus("SUCCESS", "切到成功态");
+          }
+          if (v === "error") {
+            state.error = { code: "E_DEMO", message: "演示失败态（非真实错误）" };
+            setStatus("ERROR", "切到失败态");
+          }
+        });
+      });
+
+      reset();
+    </script>
+  </body>
+</html>
+
