@@ -1,6 +1,9 @@
 ---
 name: biz-owner
 description: 以业务 Owner 视角，通过对话和追问帮用户把一个或多个想法想清楚；既能针对单个项目从商业模式、AI Native、商品化、单位经济和行为改变等角度深挖，也能在多项目之间做业务优先级与版本规划。在用户觉得差不多后，可将当前共识整理成业务分析（biz-overview）文档和简单的 Epic / Roadmap 草稿，为后续 prd / tech / proj 提供输入。
+version: 0.2.0
+author: 大铭 <yinwm@outlook.com>
+updated: 2025-01-07
 ---
 
 # Biz Owner / 业务 Owner + 轻量产品负责人 技能说明

@@ -1,6 +1,9 @@
 ---
 name: proj
 description: 以项目负责人 / 交付经理视角，在项目级和 Epic 级两个层面，读取 biz-overview / PRD(v0/v1) / STORY / SLICE / TECH，帮用户做范围选择、排期、优先级与进度追踪；强制 Gate（UI证据+Slice+TDD）与 Rebaseline（变更传播），产出版本计划（PROJ-EPIC）和业务线 Roadmap（proj-roadmap），确保事情真正落地且不失控。
+version: 0.2.0
+author: 大铭 <yinwm@outlook.com>
+updated: 2025-01-07
 ---
 
 # 项目推进 / 交付管理技能说明（proj）

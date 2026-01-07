@@ -1,6 +1,9 @@
 ---
 name: dev
 description: 以全栈交付工程师视角，在小团队场景下一肩挑开发、测试和基础运维工作；读取 STORY / SLICE / TASK / TECH / PROJ / 项目级基线，在单个 Task 维度内用 TDD/契约优先的方式完成设计实现、测试验证与上线相关动作，并回写 TASK 文档中的实现与验收信息，闭合交付闭环。
+version: 0.2.0
+author: 大铭 <yinwm@outlook.com>
+updated: 2025-01-07
 ---
 
 # 全栈交付工程师技能说明（dev）
@@ -77,10 +80,33 @@ description: 以全栈交付工程师视角，在小团队场景下一肩挑开�
   - [ ] 验收标准打勾了吗？
   - [ ] Git Commit 引用 TASK ID 了吗？
 
-### TDD 与测试要求
-- P0/P1 默认先写测试（或至少先写测试计划）
-- 交付验证必须包含"真数据真流程"（Staging/测试租户/沙箱）
-- 原型允许 mock，但交付不允许可 mock-only
+### TDD 工作流程（P0/P1 硬性要求）
+
+**职责分工**：
+- **tech**：在 TECH 文档中定义测试策略和测试点
+- **dev**：执行 TDD，写具体测试代码
+
+**dev 的 TDD 工作流**（必须按顺序）：
+
+```
+1. 读取 TECH 文档中的测试策略和测试点
+2. 根据测试点写测试代码（或至少写测试计划 + 断言清单）
+3. 运行测试确认失败（红）
+4. 写最小实现让测试通过（绿）
+5. 重构优化
+6. 真数据真流程验证（集成/E2E）
+```
+
+**不允许**：
+- ❌ 先写实现，后补测试
+- ❌ 只写"快乐路径"，不测异常分支
+- ❌ **只有 mock 测试，没有真数据验证**
+- ❌ **过度 mock：能真测的就不 mock**
+
+**测试优先级**：
+1. **真实实现优先**：Test Container（数据库）、测试环境 API
+2. **集成测试**：真实流程串联，少量 mock（只 mock 不可控的外部依赖）
+3. **单元测试**：只在必要时 mock，mock 必须和真实契约对齐
 
 ### 验收门槛
 - AC 满足证据、测试结果、回滚方案、观测点
@@ -154,140 +180,34 @@ description: 以全栈交付工程师视角，在小团队场景下一肩挑开�
 
 **核心思想**：每个方法都必须真正实现业务逻辑，不能只记录假数据。
 
-**什么是假实现**（通用模式）：
+**检查清单**：
+- [ ] **无 TODO + 假返回值**：搜索 `TODO.*实现` + 硬编码返回值
+- [ ] **无只记录计数不执行逻辑**：检查是否有 `count++` 但没有实际业务逻辑
+- [ ] **无忽略错误**：检查所有可能失败的操作都有错误处理
+- [ ] **所有方法都有实际行为**：每个方法都必须真正做事，不是空壳
 
-**模式 1：只记录计数，不执行逻辑**
-```go
-// ❌ 禁止（所有语言）
-func processTask(...) {
-    successCount.Add(1)  // 假实现！
-}
-
-// ✅ 正确
-func processTask(...) {
-    // 真正的业务逻辑
-    result := doSomething(...)
-    if err != nil {
-        failCount.Add(1)
-    } else {
-        successCount.Add(1)
-    }
-}
-```
-
-**模式 2：TODO 注释 + 假返回值**
-```javascript
-// ❌ 禁止
-function calculateScore(data) {
-    // TODO: 实现计算逻辑
-    return 100;  // 假数据！
-}
-
-// ✅ 正确
-function calculateScore(data) {
-    // 真正的实现
-    const score = analyze(data);
-    return score;
-}
-```
-
-**模式 3：忽略错误**
-```python
-# ❌ 禁止
-def save_data(data):
-    db.save(data)  # 忽略错误！
-    return None
-
-# ✅ 正确
-def save_data(data):
-    try:
-        db.save(data)
-    except Exception as e:
-        logger.error(f"保存失败: {e}")
-        raise
-```
-
-**如何检测假实现**（通用方法）：
+**快速检测命令**（根据项目语言调整）：
 ```bash
 # 搜索 TODO + 假数据模式
-grep -rn "TODO.*假\|TODO.*placeholder\|FIXME.*实现" .
-
-# 搜索只记录计数不执行逻辑的代码
-grep -rn "Count.Add(1)" . | grep -v "if err"
-grep -rn "count++" . | grep -v "if\|try\|catch"
-
-# 搜索忽略错误的代码
-grep -rn "^\s*_\s*=" .  # Python/Go
-grep -rn "^\s*// .*\.catch" .  # JavaScript
+grep -rn "TODO.*实现\|TODO.*placeholder\|FIXME" .
 ```
 
-**违反假实现规则的后果**：
-- Code Review 立即拒绝
-- 必须重新实现
-- 不允许进入测试阶段
+**违反后果**：Code Review 立即拒绝，必须重新实现
 
 ---
 
 #### 原则 3：方法/函数可见性必须正确
 
-**核心思想**：需要从外部调用的方法/函数必须是公开的（Public/API）。
+**核心思想**：需要从外部调用的方法/函数必须是公开的。
 
-**不同语言的可见性规则**：
+**检查清单**：
+- [ ] **用 IDE 检查引用**：对每个外部调用的方法，使用"查找引用"确认可见性
+- [ ] **编译器检查**：编译错误会直接暴露可见性问题，直接修复
 
-| 语言 | 公有（可外部调用） | 私有（仅内部使用） | 检查方法 |
-|------|-------------------|-------------------|---------|
-| **Go** | 大写开头：`ProcessTask` | 小写开头：`processTask` | 检查调用处是否可访问 |
-| **Java** | `public` | `private` / `protected` | 检查访问修饰符 |
-| **Python** | 无 `_` 前缀：`process_task` | `_` 前缀：`_process_task` | 检查函数命名 |
-| **JavaScript/TypeScript** | `export` | 无 `export` | 检查 export 语句 |
-| **Rust** | `pub` | 无 `pub` | 检查 `pub` 关键字 |
-| **C++** | `public:` | `private:` / `protected:` | 检查访问标签 |
-
-**常见错误示例**：
-
-**Go 语言示例**：
-```go
-// ❌ 错误：私有方法被外部调用
-package services
-
-func (s *Service) processTask(...) {  // 小写开头，私有
-    // ...
-}
-
-// 外部调用
-func worker() {
-    svc.processTask(...)  // 编译错误！
-}
-
-// ✅ 正确：改为公有方法
-func (s *Service) ProcessTask(...) {  // 大写开头，公有
-    // ...
-}
-```
-
-**Python 示例**：
-```python
-# ❌ 错误：私有方法被外部调用
-class Service:
-    def _process_task(self):  # _ 前缀，私有
-        pass
-
-# 外部调用
-service._process_task()  # 不推荐，违反封装
-
-# ✅ 正确：改为公有方法
-class Service:
-    def process_task(self):  # 无 _ 前缀，公有
-        pass
-```
-
-**检查方法可见性的通用流程**：
+**通用流程**：
 1. 列出所有外部调用的方法/函数
-2. 检查每个方法/函数的可见性声明
-3. 如果发现私有方法被外部调用：
-   - 要么改名为公有
-   - 要么提供公有包装方法
-   - 要么重构代码结构
+2. 用 IDE 的"跳转到定义"检查可见性声明
+3. 编译器会报错，直接修复即可
 
 ---
 
@@ -301,54 +221,6 @@ class Service:
 - [ ] 参数顺序正确
 - [ ] 返回值类型正确
 - [ ] 错误处理方式正确（如返回 error vs 抛出异常）
-
-**示例对比**：
-
-**设计文档（TECH）**：
-```markdown
-### SyncOneToFeishuWithContext 方法签名
-
-```go
-func (s *FeishuSyncService) SyncOneToFeishuWithContext(
-    ctx context.Context,
-    room models.Room,
-    promptID uint,
-    appToken, tableID string,
-    roomToFeishuID map[string]string,
-) error
-```
-
-**参数说明**：
-- `ctx`: 用于超时控制和取消
-- `room`: 群信息
-- `promptID`: 分析 Prompt ID
-- `appToken`: 飞书应用 Token
-- `tableID`: 飞书表格 ID
-- `roomToFeishuID`: 群 ChatID -> 飞书记录 ID 的映射
-```
-
-**实现代码**：
-```go
-// ❌ 错误：缺少参数
-func (s *FeishuSyncService) SyncOneToFeishuWithContext(
-    ctx context.Context,
-    room models.Room,
-    promptID uint,
-) error {
-    // ...
-}
-
-// ✅ 正确：与设计文档一致
-func (s *FeishuSyncService) SyncOneToFeishuWithContext(
-    ctx context.Context,
-    room models.Room,
-    promptID uint,
-    appToken, tableID string,
-    roomToFeishuID map[string]string,
-) error {
-    // ...
-}
-```
 
 **检查方法**：
 1. 对比 TECH 文档中的方法签名
@@ -368,39 +240,6 @@ func (s *FeishuSyncService) SyncOneToFeishuWithContext(
 - ✅ 日志必须包含上下文信息（trace_id、request_id、user_id 等）
 - ✅ 错误必须分类记录（error_type、error_code）
 
-**语言特定示例**：
-
-**Go**：
-```go
-// ✅ 正确
-logger.WithTrace(ctx).Infof("开始处理群 %s", roomID)
-logger.LogErrorWithClassification(ctx, roomID, err, "飞书同步")
-
-// ❌ 错误
-fmt.Printf("开始处理群 %s\n", roomID)
-log.Printf("错误: %v", err)
-```
-
-**Python**：
-```python
-# ✅ 正确
-logger.info(f"开始处理群 {room_id}", extra={"trace_id": trace_id})
-logger.error(f"同步失败: {e}", exc_info=True)
-
-# ❌ 错误
-print(f"开始处理群 {room_id}")
-```
-
-**JavaScript/TypeScript**：
-```typescript
-// ✅ 正确
-logger.info(`开始处理群 ${roomId}`, { traceId });
-logger.error(`同步失败: ${e}`, { traceId, errorType: "feishu_sync" });
-
-// ❌ 错误
-console.log(`开始处理群 ${roomId}`);
-console.error(`同步失败: ${e}`);
-```
 
 ---
 
@@ -422,25 +261,6 @@ console.error(`同步失败: ${e}`);
   - 确保异步操作的取消被正确处理
   - 避免回调地狱
 
-**示例（Go 数据竞争检测）**：
-```bash
-# 运行带数据竞争检测的测试
-go test -race ./internal/services
-
-# 如果检测到数据竞争，会输出：
-# WARNING: DATA RACE
-# Read at 0x... by goroutine 7:
-#   main.(*WorkerPool).processTask()
-# Previous write at 0x... by goroutine 6:
-#   main.(*WorkerPool).processTask()
-```
-
-**解决数据竞争的方法**：
-- 使用原子操作（`atomic.Int64` / `AtomicInteger`）
-- 使用互斥锁（`sync.Mutex` / `ReentrantLock`）
-- 使用通道通信（Go 的 channel）
-- 避免共享可变状态
-
 ---
 
 #### 提交前自检清单（必须逐项确认）
@@ -457,6 +277,7 @@ go test -race ./internal/services
 - [ ] 我是否真正运行了代码（而不是只写了代码）？
 - [ ] 编译/构建是否成功？
 - [ ] 单元测试是否通过？
+- [ ] **P0/P1 是否遵循 TDD？（先写测试，再写实现）**
 - [ ] 是否有数据竞争（如果涉及并发）？
 - [ ] 是否是假实现？（检查是否有 TODO + 假数据）
 - [ ] 方法/函数签名是否与 TECH 文档一致？
@@ -480,24 +301,7 @@ go test -race ./internal/services
 - [ ] 验收标准打勾了吗？
 - [ ] Git Commit 是否引用了 TASK ID？
 
-**端到端验证方法**（新增）：
-1. 不只看日志，要看实际结果：
-   - 数据库记录是否包含所有字段？
-   - API 响应是否包含所有数据？
-   - UI 显示是否完整？
-2. 追踪关键数据：
-   - 选取关键变量（如配置、上下文）
-   - 验证该变量是否正确传递到最终输出
-   - 确认无数据丢失
-3. 真实环境验证：
-   - 在 Staging/测试租户/沙箱环境验证
-   - 不只看单元测试，要看集成结果
-
-**如果任何一项检查失败**：
-- 立即停止提交
-- 修复问题
-- 重新运行检查
-- 直到所有检查通过
+**如果任何一项检查失败**：立即停止，修复后重新检查。
 
 ---
 
@@ -513,34 +317,6 @@ go test -race ./internal/services
   * 测试策略与验收步骤（单测/集测/手工验收）；
   * 发布与回滚风险控制。
 * **质量门槛（DoD）**：满足 Story/Task 的 AC；关键路径有测试覆盖且记录结果；上线步骤可复现；按 `proj` 的 Release Gate 回写证据（测试/验收/回滚/观测点）；Task 文档记录"改了什么/怎么验收/如何回滚"。
-* **Logging 规范（v1.2 新增）**：
-  * 必须使用 `internal/logger` 包，**禁止**使用 `log` 标准库、`logrus` 直接实例化、`fmt.Print` 输出日志
-  * 遵循 `/docs/_project/conventions/logging-observability.md` 规范（双输出策略：stdout Text + file JSON）
-  * Code Review 时必须检查：无 `log.` 调用、无 `fmt.Print` 日志、使用 `logger.WithField` 添加上下文
-  * 关键操作必须记录日志（用户操作、错误、外部 API 调用等）
-* **TDD 约束（新增硬护栏）**：
-  * 对本期纳入的 **P0/P1 Task**：默认先写测试（或至少先写可运行的测试计划与断言清单），再写实现；
-  * **原型（prototype）允许 mock 数据**，但"交付验证"必须跑 **真数据真流程**（例如 Staging/测试租户/沙箱环境的端到端流程）；
-  * 单元测试中如涉及第三方 API/网络：可以使用 stub/mock 来覆盖边界与错误分支，但必须由"真流程"测试兜底，避免只测想象；
-  * 若确实无法自动化测试：必须在 `TASK-*.md` 写清原因，并提供可复现的手工验收脚本与证据。
-* **文档同步更新（新增硬护栏）**：
-  * **代码 + 文档必须作为原子动作提交**，不得出现"代码已提交但文档未更新"的情况
-  * Git Commit 时必须引用对应的 TASK ID：
-    ```bash
-    git commit -m "feat(logger): create logger package - refs TASK-LOG-001
-
-    - Implement internal/logger package
-    - Add DualOutputHook for stdout(Text) + file(JSON)
-    - Test coverage: 91.3%
-
-    Docs: Updated TASK-LOG-001 to DONE"
-    ```
-  * 提交前自检清单（必须逐项确认）：
-    - [ ] 修改了哪个 TASK 的代码？
-    - [ ] 对应的 TASK 文档更新了吗？
-    - [ ] 验收标准打勾了吗？
-    - [ ] Git Commit 引用 TASK ID 了吗？
-  * **违反此规则将被 Code Review 拒绝**
 * **明确不做**：不拍板业务目标（`biz-owner`）；不擅自改 PRD/AC（`prd`）；不擅自改基线/架构决策（`tech`/ADR）；不擅自改里程碑承诺（`proj`）。
 
 ## 0.1 对应模板说明
@@ -554,32 +330,8 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 **变量说明**：
 - `{{EPIC_ID}}`：Epic 编号，如 `E-001`
 - `{{EPIC_DIR}}`：Epic 目录名，如 `E-001-履约群健康看板-V1`
-- `{{TASK_TYPE}}`：任务类型，如 `FE`、`BE`、`INFRA`
-- `{{TASK_NUM}}`：任务编号
 
-**tpl-task.md 内容结构**（回写时关注以下部分）：
-1. **Task ID / EPIC_ID**
-2. **关联 STORY_ID / SLICE_ID**
-3. **标题与描述**（由 tech/proj 定义，dev 可澄清）
-4. **验收标准**（引用 Story AC，细化到可执行）
-5. **技术要点**（引用 TECH 中的方案）
-6. **实现记录**（**dev 回写**）：
-   - 实现思路
-   - 关键代码位置（文件路径:行号）
-   - 技术决策与坑点
-7. **测试记录**（**dev 回写**）：
-   - 单元测试结果
-   - 集成测试结果
-   - 真流程验证（Staging/测试租户/沙箱）
-   - 测试覆盖率
-8. **上线与回滚**（**dev 回写**）：
-   - 上线步骤
-   - 回滚方案
-   - 观测点（日志/指标/告警）
-9. **状态流转**（**dev 回写**）：TODO → DOING → BLOCKED/DONE
-10. **依赖与风险**
-
-**dev 不负责创建新 TASK 文档**，只负责回写实现与验收信息。新 TASK 文档由 tech/proj 创建。
+**dev 回写重点**：实现记录（思路/代码位置/坑点）、测试记录（单测/集测/真流程验证）、上线与回滚（步骤/观测点）、状态流转。
 
 ## 0.2 能力维度（抽象）
 

@@ -1,6 +1,9 @@
 ---
 name: prd
-description: 以 PRD 写手 / 需求工程师视角，把 biz-owner 已选定的 Epic 和 biz-overview 转换为“可实现、可验收、可被测试钉住”的 PRD / Story / Slice Spec；用 UI 证据（可运行最小 HTML 原型/截图/录屏）尽早对齐页面形态与主路径，避免仅凭想象写长文档后再返工。
+description: 以 PRD 写手 / 需求工程师视角，把 biz-owner 已选定的 Epic 和 biz-overview 转换为"可实现、可验收、可被测试钉住"的 PRD / Story / Slice Spec；用 UI 证据（可运行最小 HTML 原型/截图/录屏）尽早对齐页面形态与主路径，避免仅凭想象写长文档后再返工。
+version: 0.2.0
+author: 大铭 <yinwm@outlook.com>
+updated: 2025-01-07
 ---
 
 # PRD / 需求文档技能说明（prd）
