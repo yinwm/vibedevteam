@@ -39,7 +39,7 @@ description: 以全栈交付工程师视角，在小团队场景下一肩挑开�
 
 ---
 
-### 核心规则摘要（从 workflow-overview.md 提取）
+### 核心规则摘要（从 workflow-overview-v2.md 提取）
 
 #### Gate 门槛（proj 负责，dev 需知晓）
 - **Gate B**（进入实现）：UI 证据必须存在（原型/截图/录屏）
@@ -84,6 +84,422 @@ description: 以全栈交付工程师视角，在小团队场景下一肩挑开�
 
 ### 验收门槛
 - AC 满足证据、测试结果、回滚方案、观测点
+
+---
+
+### 代码质量检查清单（硬护栏）
+
+⚠️ **每次实现完成后必须执行以下检查，违反将被 Code Review 拒绝**：
+
+#### 原则 0：必须理解代码逻辑（禁止 Copy-Paste 编程）（新增）
+
+**核心思想**：实现代码前必须理解设计意图，禁止盲目复制粘贴。
+
+**通用检查项**：
+- [ ] **理解调用链**：能否画出完整的函数调用图？
+- [ ] **理解变量作用域**：是否知道每个关键变量的生命周期？
+- [ ] **理解数据流向**：是否知道数据从输入到输出的完整路径？
+- [ ] **质疑文档**：发现文档有问题是否立即提出？
+
+**禁止的行为**（所有语言/项目）：
+- ❌ 不读 TECH 文档，直接 Copy 代码片段
+- ❌ 不理解变量作用域，直接组装代码
+- ❌ 不画调用链图，直接开始实现
+- ❌ 发现文档有问题，保持沉默继续实现
+
+**必须的步骤**：
+1. 阅读完整的 TECH 文档（不只看代码片段）
+2. 画出调用链图（标注关键参数传递）
+3. 标注变量作用域边界（创建点、使用点、销毁点）
+4. 发现文档问题，立即提出（不要假设"应该没问题"）
+
+**为什么必须理解**？
+- Copy-Paste 会遗漏关键细节（如变量作用域）
+- 不理解会导致数据流断裂（如配置传递失败）
+- 文档可能有误，沉默实现会导致功能缺陷
+
+---
+
+#### 原则 1：必须验证代码可运行（禁止"写完就算完成"）
+
+**核心思想**：代码不仅要写完，还必须能够真正运行。
+
+**通用检查项**（适用于所有语言）：
+- [ ] **编译/构建成功**：确保代码没有语法错误
+  - Go: `go build ./...`
+  - JavaScript/TypeScript: `npm run build`
+  - Python: `python -m py_compile **/*.py`
+  - Java: `mvn compile`
+  - Rust: `cargo check`
+- [ ] **单元测试通过**：确保功能符合预期
+  - Go: `go test ./...`
+  - JavaScript/TypeScript: `npm test`
+  - Python: `pytest`
+  - Java: `mvn test`
+  - Rust: `cargo test`
+- [ ] **静态分析通过**（如果项目有配置）：确保代码质量
+  - Go: `golangci-lint run`
+  - JavaScript/TypeScript: `npm run lint`
+  - Python: `flake8` / `black --check`
+  - Rust: `cargo clippy`
+
+**为什么必须验证**？
+- 编译错误会立即阻塞集成
+- 测试失败会导致功能缺陷
+- 静态分析能发现潜在问题（未使用的变量、可能的 bug）
+
+---
+
+#### 原则 2：禁止假实现或占位符代码
+
+**核心思想**：每个方法都必须真正实现业务逻辑，不能只记录假数据。
+
+**什么是假实现**（通用模式）：
+
+**模式 1：只记录计数，不执行逻辑**
+```go
+// ❌ 禁止（所有语言）
+func processTask(...) {
+    successCount.Add(1)  // 假实现！
+}
+
+// ✅ 正确
+func processTask(...) {
+    // 真正的业务逻辑
+    result := doSomething(...)
+    if err != nil {
+        failCount.Add(1)
+    } else {
+        successCount.Add(1)
+    }
+}
+```
+
+**模式 2：TODO 注释 + 假返回值**
+```javascript
+// ❌ 禁止
+function calculateScore(data) {
+    // TODO: 实现计算逻辑
+    return 100;  // 假数据！
+}
+
+// ✅ 正确
+function calculateScore(data) {
+    // 真正的实现
+    const score = analyze(data);
+    return score;
+}
+```
+
+**模式 3：忽略错误**
+```python
+# ❌ 禁止
+def save_data(data):
+    db.save(data)  # 忽略错误！
+    return None
+
+# ✅ 正确
+def save_data(data):
+    try:
+        db.save(data)
+    except Exception as e:
+        logger.error(f"保存失败: {e}")
+        raise
+```
+
+**如何检测假实现**（通用方法）：
+```bash
+# 搜索 TODO + 假数据模式
+grep -rn "TODO.*假\|TODO.*placeholder\|FIXME.*实现" .
+
+# 搜索只记录计数不执行逻辑的代码
+grep -rn "Count.Add(1)" . | grep -v "if err"
+grep -rn "count++" . | grep -v "if\|try\|catch"
+
+# 搜索忽略错误的代码
+grep -rn "^\s*_\s*=" .  # Python/Go
+grep -rn "^\s*// .*\.catch" .  # JavaScript
+```
+
+**违反假实现规则的后果**：
+- Code Review 立即拒绝
+- 必须重新实现
+- 不允许进入测试阶段
+
+---
+
+#### 原则 3：方法/函数可见性必须正确
+
+**核心思想**：需要从外部调用的方法/函数必须是公开的（Public/API）。
+
+**不同语言的可见性规则**：
+
+| 语言 | 公有（可外部调用） | 私有（仅内部使用） | 检查方法 |
+|------|-------------------|-------------------|---------|
+| **Go** | 大写开头：`ProcessTask` | 小写开头：`processTask` | 检查调用处是否可访问 |
+| **Java** | `public` | `private` / `protected` | 检查访问修饰符 |
+| **Python** | 无 `_` 前缀：`process_task` | `_` 前缀：`_process_task` | 检查函数命名 |
+| **JavaScript/TypeScript** | `export` | 无 `export` | 检查 export 语句 |
+| **Rust** | `pub` | 无 `pub` | 检查 `pub` 关键字 |
+| **C++** | `public:` | `private:` / `protected:` | 检查访问标签 |
+
+**常见错误示例**：
+
+**Go 语言示例**：
+```go
+// ❌ 错误：私有方法被外部调用
+package services
+
+func (s *Service) processTask(...) {  // 小写开头，私有
+    // ...
+}
+
+// 外部调用
+func worker() {
+    svc.processTask(...)  // 编译错误！
+}
+
+// ✅ 正确：改为公有方法
+func (s *Service) ProcessTask(...) {  // 大写开头，公有
+    // ...
+}
+```
+
+**Python 示例**：
+```python
+# ❌ 错误：私有方法被外部调用
+class Service:
+    def _process_task(self):  # _ 前缀，私有
+        pass
+
+# 外部调用
+service._process_task()  # 不推荐，违反封装
+
+# ✅ 正确：改为公有方法
+class Service:
+    def process_task(self):  # 无 _ 前缀，公有
+        pass
+```
+
+**检查方法可见性的通用流程**：
+1. 列出所有外部调用的方法/函数
+2. 检查每个方法/函数的可见性声明
+3. 如果发现私有方法被外部调用：
+   - 要么改名为公有
+   - 要么提供公有包装方法
+   - 要么重构代码结构
+
+---
+
+#### 原则 4：方法/函数签名必须与设计文档一致
+
+**核心思想**：实现的方法/函数签名必须与 TECH 文档或接口契约完全一致。
+
+**检查清单**：
+- [ ] 方法/函数名称正确
+- [ ] 参数类型正确
+- [ ] 参数顺序正确
+- [ ] 返回值类型正确
+- [ ] 错误处理方式正确（如返回 error vs 抛出异常）
+
+**示例对比**：
+
+**设计文档（TECH）**：
+```markdown
+### SyncOneToFeishuWithContext 方法签名
+
+```go
+func (s *FeishuSyncService) SyncOneToFeishuWithContext(
+    ctx context.Context,
+    room models.Room,
+    promptID uint,
+    appToken, tableID string,
+    roomToFeishuID map[string]string,
+) error
+```
+
+**参数说明**：
+- `ctx`: 用于超时控制和取消
+- `room`: 群信息
+- `promptID`: 分析 Prompt ID
+- `appToken`: 飞书应用 Token
+- `tableID`: 飞书表格 ID
+- `roomToFeishuID`: 群 ChatID -> 飞书记录 ID 的映射
+```
+
+**实现代码**：
+```go
+// ❌ 错误：缺少参数
+func (s *FeishuSyncService) SyncOneToFeishuWithContext(
+    ctx context.Context,
+    room models.Room,
+    promptID uint,
+) error {
+    // ...
+}
+
+// ✅ 正确：与设计文档一致
+func (s *FeishuSyncService) SyncOneToFeishuWithContext(
+    ctx context.Context,
+    room models.Room,
+    promptID uint,
+    appToken, tableID string,
+    roomToFeishuID map[string]string,
+) error {
+    // ...
+}
+```
+
+**检查方法**：
+1. 对比 TECH 文档中的方法签名
+2. 使用 IDE 的"跳转到定义"功能检查实际签名
+3. 运行编译器（类型错误会立即暴露）
+
+---
+
+#### 原则 5：日志规范必须遵守
+
+**核心思想**：使用统一的日志框架，避免直接使用标准输出。
+
+**通用规则**（适用于所有语言）：
+- ✅ 使用项目统一的日志框架
+- ❌ 禁止使用 `print` / `console.log` / `fmt.Print` 输出日志
+- ✅ 关键操作必须记录日志（用户操作、错误、外部 API 调用）
+- ✅ 日志必须包含上下文信息（trace_id、request_id、user_id 等）
+- ✅ 错误必须分类记录（error_type、error_code）
+
+**语言特定示例**：
+
+**Go**：
+```go
+// ✅ 正确
+logger.WithTrace(ctx).Infof("开始处理群 %s", roomID)
+logger.LogErrorWithClassification(ctx, roomID, err, "飞书同步")
+
+// ❌ 错误
+fmt.Printf("开始处理群 %s\n", roomID)
+log.Printf("错误: %v", err)
+```
+
+**Python**：
+```python
+# ✅ 正确
+logger.info(f"开始处理群 {room_id}", extra={"trace_id": trace_id})
+logger.error(f"同步失败: {e}", exc_info=True)
+
+# ❌ 错误
+print(f"开始处理群 {room_id}")
+```
+
+**JavaScript/TypeScript**：
+```typescript
+// ✅ 正确
+logger.info(`开始处理群 ${roomId}`, { traceId });
+logger.error(`同步失败: ${e}`, { traceId, errorType: "feishu_sync" });
+
+// ❌ 错误
+console.log(`开始处理群 ${roomId}`);
+console.error(`同步失败: ${e}`);
+```
+
+---
+
+#### 原则 6：并发/异步安全必须验证
+
+**核心思想**：如果代码涉及并发或异步操作，必须验证无数据竞争。
+
+**通用检查项**：
+- [ ] **数据竞争检查**（如果项目支持）
+  - Go: `go test -race ./...`
+  - Rust: `cargo test`（默认检测数据竞争）
+  - Java: 使用 `ThreadLeakChecker` 或 `ContiPerf`
+- [ ] **锁/互斥量正确使用**
+  - 确保所有共享变量都有保护
+  - 确保锁的获取和释放成对出现
+  - 避免死锁（按固定顺序获取锁）
+- [ ] **异步操作正确处理**
+  - 确保异步操作的错误被捕获
+  - 确保异步操作的取消被正确处理
+  - 避免回调地狱
+
+**示例（Go 数据竞争检测）**：
+```bash
+# 运行带数据竞争检测的测试
+go test -race ./internal/services
+
+# 如果检测到数据竞争，会输出：
+# WARNING: DATA RACE
+# Read at 0x... by goroutine 7:
+#   main.(*WorkerPool).processTask()
+# Previous write at 0x... by goroutine 6:
+#   main.(*WorkerPool).processTask()
+```
+
+**解决数据竞争的方法**：
+- 使用原子操作（`atomic.Int64` / `AtomicInteger`）
+- 使用互斥锁（`sync.Mutex` / `ReentrantLock`）
+- 使用通道通信（Go 的 channel）
+- 避免共享可变状态
+
+---
+
+#### 提交前自检清单（必须逐项确认）
+
+每次提交代码前，必须逐项确认以下清单：
+
+**代码理解质量**（新增）：
+- [ ] 我是否理解了完整的调用链？（能否画出调用图）
+- [ ] 我是否知道每个关键变量的作用域？（创建、使用、销毁）
+- [ ] 我是否验证了数据流的完整性？（从输入到输出）
+- [ ] 我是否质疑了文档中的不确定之处？
+
+**代码实现质量**：
+- [ ] 我是否真正运行了代码（而不是只写了代码）？
+- [ ] 编译/构建是否成功？
+- [ ] 单元测试是否通过？
+- [ ] 是否有数据竞争（如果涉及并发）？
+- [ ] 是否是假实现？（检查是否有 TODO + 假数据）
+- [ ] 方法/函数签名是否与 TECH 文档一致？
+
+**代码规范遵守**：
+- [ ] 是否遵守了项目的日志规范？
+- [ ] 是否遵守了项目的错误处理规范？
+- [ ] 方法/函数可见性是否正确？
+- [ ] 变量命名是否符合项目规范？
+- [ ] 代码行数是否超过限制？（如单文件不超过 600 行）
+
+**端到端验证**（新增）：
+- [ ] 是否验证了最终输出的完整性？（不只是看日志）
+- [ ] 是否验证了数据从输入到输出的完整路径？
+- [ ] 是否在真实环境（Staging/测试租户/沙箱）验证过？
+- [ ] 是否确认所有关键字段都正确输出？
+
+**文档同步更新**：
+- [ ] 修改了哪个 TASK 的代码？
+- [ ] 对应的 TASK 文档更新了吗？
+- [ ] 验收标准打勾了吗？
+- [ ] Git Commit 是否引用了 TASK ID？
+
+**端到端验证方法**（新增）：
+1. 不只看日志，要看实际结果：
+   - 数据库记录是否包含所有字段？
+   - API 响应是否包含所有数据？
+   - UI 显示是否完整？
+2. 追踪关键数据：
+   - 选取关键变量（如配置、上下文）
+   - 验证该变量是否正确传递到最终输出
+   - 确认无数据丢失
+3. 真实环境验证：
+   - 在 Staging/测试租户/沙箱环境验证
+   - 不只看单元测试，要看集成结果
+
+**如果任何一项检查失败**：
+- 立即停止提交
+- 修复问题
+- 重新运行检查
+- 直到所有检查通过
+
+---
 
 ## 0. 能力卡片（速查）
 
@@ -169,10 +585,11 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 * **任务澄清**：把 Task 的目标、AC、影响面与依赖说清楚，缺信息就把问题变成可回答的 `[OPEN]`。
 * **代码深度分析**：能深入阅读关键模块与调用链，定位真实原因、隐藏依赖与潜在影响面，避免改动踩坑。
+* **代码理解优先**（新增）：在动手写代码前，必须理解设计意图和调用链，禁止 Copy-Paste 编程。能画出完整的函数调用图，标注变量作用域边界，追踪数据流向。
 * **代码复用优先**：在动手写代码前，先在仓库中定位是否已有类似实现/通用能力，优先复用与扩展，避免重复造轮子。
 * **实现落地**：把方案落到代码结构、数据迁移、接口契约与兼容策略，避免一次性大爆改。
 * **小范围重构意识**：把每次编码当作“小范围重构”的机会：在不扩大风险与范围的前提下，把不通用的实现抽成可复用能力，并保证对旧调用兼容（向后兼容/渐进迁移）。
-* **质量与测试**：用分层测试（单测/集测/回归）证明交付质量，并覆盖关键边界与权限。
+* **质量与测试**：用分层测试（单测/集测/回归）证明交付质量，并覆盖关键边界与权限。**端到端验证**（新增）：不只看日志，要验证最终输出的完整性和数据流向。
 * **可观测与可运维**：日志/指标/告警/排障路径与配置管理，保证上线后可控可查。
 * **发布与回滚**：把上线步骤、数据迁移、灰度/开关与回滚条件写清，降低发布风险。
 * **性能与稳定性意识**：在关键路径上做必要的性能/并发/幂等控制，而不是事后补救。

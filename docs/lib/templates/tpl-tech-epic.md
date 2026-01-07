@@ -142,6 +142,42 @@ flowchart LR
   - `TASK-001`：`...`（依赖：...）
   - `TASK-002`：`...`
 
+### 7.1 代码修改清单（Critical - 纵向追踪） ⭐
+
+> **⚠️ 重要**：新增字段/功能时，必须列出所有修改点。避免遗漏（参考 Epic 013 Bug 案例）。
+>
+> **详见**：`docs/_project/conventions/db-conventions.md` 第 6.4 节
+
+**修改清单模板**：
+
+#### Model 层
+- [ ] `internal/models/*.go:XX` 添加字段定义（GORM tag + JSON tag）
+
+#### Migration 层
+- [ ] `migrations/VX.X__description.up.sql` 添加迁移脚本
+- [ ] `migrations/VX.X__description.down.sql` 添加回滚脚本
+- [ ] 执行迁移并验证：`PRAGMA table_info(table_name);`
+
+#### Handler 层（3个位置）
+- [ ] `internal/handlers/*_handler.go:XX` Create 请求解析
+- [ ] `internal/handlers/*_handler.go:XX` Update 请求解析
+- [ ] `internal/handlers/*_handler.go:XX` 响应格式化（如需要）
+
+#### Service 层（2个方法）← **最容易遗漏**
+- [ ] `internal/services/*_service.go:XX` Create 方法保存字段
+- [ ] `internal/services/*_service.go:XX` **Update 方法更新字段** ⭐
+
+#### 测试层（端到端）
+- [ ] `internal/services/*_test.go` Create 测试
+- [ ] `internal/services/*_test.go` **Update 测试** ⭐
+- [ ] `internal/services/*_test.go` 数据库验证
+
+#### 验证命令
+```bash
+# 快速验证所有修改点
+./scripts/check-new-field.sh FieldName
+```
+
 ---
 
 ## 8. 与基线冲突（如有）
