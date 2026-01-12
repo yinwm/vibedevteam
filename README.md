@@ -121,7 +121,19 @@ bd update $TASK_ID -s "doing"
 ### 前置条件
 
 - 已安装 [Claude Code](https://claude.com/claude-code)
+- 已安装 [beads](https://github.com/steveyegge/beads/blob/main/docs/INSTALLING.md)（任务管理工具）
 - 你的项目是一个 Git 仓库
+
+### 安装 beads
+
+beads 是一个依赖感知的任务跟踪器，专为 AI 工作流设计。
+
+**安装方式**（任选一种）：
+- **Homebrew**：`brew install beads`
+- **npm**：`npm install -g @beads/bd`
+- **二进制**：从 [GitHub Releases](https://github.com/steveyegge/beads/releases) 下载
+
+详细安装步骤请参考：[beads 官方安装指南](https://github.com/steveyegge/beads/blob/main/docs/INSTALLING.md)
 
 ### 安装步骤
 
