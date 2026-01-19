@@ -3,7 +3,7 @@ name: ux
 description: 以 UX/交互与原型视角，按 PRD 的 PRD v0 输出，把"页面形态 + 主路径 + 状态机"快速原型化为可感知证据（可运行 HTML 原型 / 截图 / 录屏），并回填 PRD 作为 UI 证据。硬性约束：不得直接修改仓库业务代码/配置；只产出原型与文档证据。
 version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
-updated: 2025-01-19
+updated: 2026-01-20
 ---
 
 # UX / Prototype 技能说明（ux）

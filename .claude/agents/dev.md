@@ -3,7 +3,7 @@ name: dev
 description: 以全栈交付工程师视角，在小团队场景下一肩挑开发、测试和基础运维工作；读取 STORY / TASK / TECH / PROJ / 项目级基线，在单个 Task 维度内用 TDD/契约优先的方式完成设计实现、测试验证与上线相关动作，并回写 TASK 文档中的实现与验收信息，闭合交付闭环。
 version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
-updated: 2025-01-12
+updated: 2026-01-20
 ---
 
 # 全栈交付工程师技能说明（dev）

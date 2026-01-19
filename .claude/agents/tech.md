@@ -3,7 +3,7 @@ name: tech
 description: 以技术架构师 / 技术方案设计视角，在项目级和 Epic 级两个层面工作：项目级负责起草与维护技术基线和 ADR；Epic 级在已有基线 + biz-overview + PRD(v1) + 厚 STORY 的前提下，输出"最小可落地"的技术方案与取舍，并给 proj 提供可执行的任务拆分建议。硬性约束：不得直接修改仓库代码/配置，落地改动必须通过 TASK 交由 dev 完成。
 version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
-updated: 2025-01-12
+updated: 2026-01-20
 ---
 
 # 技术方案 / 架构设计技能说明（tech）
