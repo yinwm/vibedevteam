@@ -211,7 +211,7 @@
           </div>
 
           <div class="footer">
-            Contract 提示：在 PRD/SLICE 里写明将来接口的 request/response/error code；这里先用 mock 数据演示。
+            Contract 提示：在 PRD/Story 里写明将来接口的 request/response/error code；这里先用 mock 数据演示。
           </div>
         </div>
 
@@ -329,7 +329,7 @@
           const shouldFail = state.a === "a2" && state.b === "b4";
           if (shouldFail) {
             state.error = { code: "E_DEMO_FAIL", message: "演示失败：当 a2+b4 时触发错误态" };
-            setStatus("ERROR", "可重试/可取消（由 PRD/SLICE 定义）");
+            setStatus("ERROR", "可重试/可取消（由 PRD/Story 定义）");
             return;
           }
 

@@ -1,7 +1,7 @@
 ---
 name: dev
-description: 以全栈交付工程师视角，在小团队场景下一肩挑开发、测试和基础运维工作；读取 STORY / SLICE / TASK / TECH / PROJ / 项目级基线，在单个 Task 维度内用 TDD/契约优先的方式完成设计实现、测试验证与上线相关动作，并回写 TASK 文档中的实现与验收信息，闭合交付闭环。
-version: 0.3.0
+description: 以全栈交付工程师视角，在小团队场景下一肩挑开发、测试和基础运维工作；读取 STORY / TASK / TECH / PROJ / 项目级基线，在单个 Task 维度内用 TDD/契约优先的方式完成设计实现、测试验证与上线相关动作，并回写 TASK 文档中的实现与验收信息，闭合交付闭环。
+version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
 updated: 2025-01-12
 ---
@@ -52,9 +52,9 @@ updated: 2025-01-12
 **正确的顺序**（必须严格遵守）：
 ```
 1. 完成代码 + 文档更新
-2. 在 beads 标记 TASK 为 `DOING`，**请求 tech review**
+2. 在 beads 标记 TASK 为 `DOING`，**通知 proj 安排 tech review**
    ⛔⛔⛔ 此时绝对不要 commit！
-3. ⏳ 等待 tech review 通过
+3. ⏳ 等待 proj 安排的 tech review 通过
 4. ✅ review 通过后，执行 Git Commit（引用 TASK ID）
 5. 在 beads 标记 TASK 为 `DONE`
 ```
@@ -82,8 +82,10 @@ updated: 2025-01-12
 ### 核心规则摘要（从 workflow-overview-v2.md 提取）
 
 #### Gate 门槛（proj 负责，dev 需知晓）
+- **Gate A**（进入 PRD v0）：biz-overview 产出 + 止损信号
 - **Gate B**（进入实现）：UI 证据必须存在（原型/截图/录屏）
-- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY + 1 份 SLICE-001
+- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY
+- **Gate D**（TASK DONE 前）：P0/P1 必须有测试 + 真流程验证 + 回滚方案
 
 #### TDD 规则（dev 必须遵守）
 - P0/P1 默认先写测试（或至少先写可运行的测试计划与断言清单）再写实现
@@ -481,7 +483,7 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
   * `proj/PROJ-{{EPIC_ID}}-v1.md`
 * 你要实际动手的工作描述：
 
-* `task/TASK-*.md`（模板参考 `docs/_templates/tpl-task.md`）
+* `task/TASK-*.md`（模板参考 `docs/lib/templates/tpl-task.md`）
 
 ---
 
@@ -572,7 +574,6 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
       * 上线情况（发布日期 / 是否有回滚 / 观察结果）。
    * `TASK-*.md` 必须保持可追溯性字段完整：
      * `STORY_ID`（或 `NO_STORY`）
-     * `SLICE_ID`（或 `NO_SLICE`）
    * 如无法推进：
 
      * 状态置为 `BLOCKED`，并写清阻塞原因与需要谁来处理（`proj/prd/tech`）。
@@ -683,7 +684,7 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 你可以：
 
-* 按 `docs/_templates/tpl-task.md` 填写或补齐：
+* 按 `docs/lib/templates/tpl-task.md` 填写或补齐：
 
   * “实现说明 / Implementation”；
   * “测试计划 / Test Plan”；

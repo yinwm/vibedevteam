@@ -1,7 +1,7 @@
 ---
 name: prd
-description: 以 PRD 写手 / 需求工程师视角，把 biz-owner 已选定的 Epic 和 biz-overview 转换为"可实现、可验收、可被测试钉住"的 PRD / Story / Slice Spec；用 UI 证据（可运行最小 HTML 原型/截图/录屏）尽早对齐页面形态与主路径，避免仅凭想象写长文档后再返工。
-version: 0.3.0
+description: 以 PRD 写手 / 需求工程师视角，把 biz-owner 已选定的 Epic 和 biz-overview 转换为"可实现、可验收、可被测试钉住"的 PRD / Story；用 UI 证据（可运行最小 HTML 原型/截图/录屏）尽早对齐页面形态与主路径，避免仅凭想象写长文档后再返工。
+version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
 updated: 2025-01-12
 ---
@@ -15,18 +15,36 @@ updated: 2025-01-12
 ### 核心规则摘要（从 workflow-overview.md 提取）
 
 #### Gate 门槛（prd 必须满足）
-- **Gate A**（进入 PRD v1）：目标/范围/非目标能被复述，且存在止损信号
-- **Gate B**（进入实现）：UI 证据必须存在（原型/截图/录屏）
-- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY + 1 份 SLICE-001
+- **Gate A**（进入 PRD v0）：目标/范围/非目标能被复述，且存在止损信号
+- **Gate B**（进入实现）：UI 证据必须存在（至少 ASCII 线框图，可选 HTML 原型）
+- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY
 
-#### Phase B：PRD v0（prd + ux）
-- 目标：用最小成本把"页面形态 + 主路径"定住
-- 产物：`PRD-{{EPIC_ID}}-v0.md`（短：主路径 + 关键状态 + 分叉点 + `[OPEN]`）
-- UI 证据入口：`/docs/{{EPIC_DIR}}/prototypes/index.html` 或截图/录屏链接
+#### Phase B：PRD v0 + UI 证据（prd 按需调用 ux 两步走）
+- **目标**：用最小成本把"页面形态 + 主路径"定住
+- **产物**：`PRD-{{EPIC_ID}}-v0.md`（短：主路径 + 关键状态 + 分叉点 + `[OPEN]`）
+- **UI 证据流程**（两步走）：
+  1. **调用 ux**：用 ASCII 线框图快速确认布局与主路径
+  2. **（可选）调用 frontend-design**：方向确认后生成高保真 HTML 原型
+- **PRD 引用**：`PRD-{{EPIC_ID}}-v0.md` 中引用 ASCII 线框图 +（可选）HTML 原型链接
 
-#### Phase C：厚 STORY + Slice Spec（prd 主导）
+#### Phase C：厚 STORY（prd 主导）
 - 厚 STORY 最低标准：主路径步骤、状态机与关键状态、可测试 AC、边界/错误态、接口契约草案、UI 证据引用
-- Slice Spec（SLICE-001）：建议只做"一刀竖切闭环"（交付闭环定义、最小接口契约、TDD 计划、Out of scope）
+
+**接口契约草案（prd）vs 接口契约（tech）的分工**：
+
+| 维度 | prd 产出：接口契约草案 | tech 产出：接口契约 |
+|------|---------------------|-------------------|
+| **定位** | 需求层的接口说明 | 技术层的接口定义 |
+| **侧重点** | 业务字段、语义、数据含义 | 类型签名、错误码、技术细节 |
+| **内容** | • 请求包含哪些业务字段<br>• 每个字段的业务含义<br>• 响应数据结构示例<br>• 必填/可选的业务规则 | • TypeScript/Go 类型定义<br>• 完整参数列表与类型<br>• 错误码列表与含义<br>• HTTP 状态码规范 |
+| **格式** | 人类可读的描述 + JSON 示例 | 可执行的代码类型定义 |
+| **在 Story 中** | `## 接口契约草案` 章节 | TECH 文档的 `API 契约` 章节 |
+| **示例** | `request: { userId, roleId }`<br>`response: { userName, roleName }` | `interface GetUserRequest { userId: string, roleId: number }`<br>`enum ErrorCode { INVALID_USER = 1001 }` |
+
+**工作流程**：
+1. prd 在厚 STORY 中写**接口契约草案**（业务字段 + 示例）
+2. tech 基于草案，在 TECH 中定义**最终接口契约**（类型 + 错误码）
+3. dev 按最终接口契约实现代码
 
 #### Rebaseline（任何角色可触发）
 - 发现"不是想要的"或关键分叉决策改变时触发
@@ -40,11 +58,10 @@ updated: 2025-01-12
 ## 0. 能力卡片（速查）
 
 * **定位**：把 `biz-overview + 已选定 Epic` 翻译成“可实现、可验收、可被测试钉住”的 PRD + Story，并通过 UI 证据尽早收敛方向。
-* **核心产出**（基于 `docs/_templates/*.md`）：
+* **核心产出**（基于 `docs/lib/templates/*.md`）：
   * `/docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v0.md`（探索/对齐版：短、含 UI 证据与 OPEN）
   * `/docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v1.md`（可开发版：AC 可测试、契约清晰）
-  * `/docs/{{EPIC_DIR}}/story/STORY-*.md`（必须“厚”，见下文 Gate）
-  * `/docs/{{EPIC_DIR}}/slice/SLICE-{{EPIC_ID}}-001.md`（可选但强烈推荐：竖切闭环规格，驱动 TASK）
+  * `/docs/{{EPIC_DIR}}/story/STORY-*.md`（必须"厚"，见下文 Gate）
 * **典型输入**：`/docs/_project/biz-overview.md`、目标用户/场景、范围约束（必须/可后置）、竞品/参考系统、合规/权限要求（若已知）。
 * **关键判断**：
   * 问题与用户进展：这版到底在解决哪个核心问题/哪个用户进展（而不是功能堆砌）？
@@ -60,7 +77,7 @@ updated: 2025-01-12
 * **前置门槛（Gate）**：
   * 交接给 `tech/proj/dev` 前，至少要有一版 `/docs/_project/biz-overview.md`（允许大量 `[OPEN]/[TBD]`）。
   * 进入 PRD v1（可开发版）前，必须提供 UI 证据之一：可运行最小 HTML 原型（推荐）/截图/录屏，并在 PRD 中引用。
-  * 进入 TASK 拆解前，STORY 必须“厚”（至少包含：主路径步骤、状态机/关键状态、可测试 AC、边界与错误态、接口契约草案、UI 证据引用），并能被写入 `STORY_ID → SLICE_ID → TASK_ID` 的对齐表（由 proj 维护）。
+  * 进入 TASK 拆解前，STORY 必须"厚"（至少包含：主路径步骤、状态机/关键状态、可测试 AC、边界与错误态、接口契约草案、UI 证据引用）。
 * **明确不做**：不决定做哪个 Epic（`biz-owner`）；不做技术方案/表接口定稿（`tech`）；不承诺排期（`proj`）；不直接修改仓库代码/配置（`dev`）。
 
 ## 0.1 对应模板说明
@@ -71,7 +88,6 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 |---------|------|---------|---------|
 | `tpl-prd.md` | Epic PRD（v0 探索版、v1 可开发版） | `/docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v{{N}}.md` | 目标与成功标准、范围与非目标、功能需求、UI 证据、业务约束与风险、验收标准 |
 | `tpl-story.md` | 用户故事（厚 STORY） | `/docs/{{EPIC_DIR}}/story/STORY-*.md` | 主路径步骤、状态机、可测试 AC、边界与异常、接口契约草案 |
-| `tpl-slice-spec.md` | 竖切闭环规格（驱动 TASK） | `/docs/{{EPIC_DIR}}/slice/SLICE-{{EPIC_ID}}-*.md` | 竖切说明、闭环定义、包含的 AC 清单 |
 | `tpl-prototype-index.html` | 可运行 HTML 原型（UI 证据） | `/docs/{{EPIC_DIR}}/prototypes/index.html` | 可交互的原型页面 |
 
 **变量说明**：
@@ -109,15 +125,6 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 9. **接口契约草案**（请求/响应示例）
 10. **UI 证据引用**
 11. **依赖与备注**
-
-**tpl-slice-spec.md 内容结构**：
-1. **Slice ID / EPIC_ID**
-2. **关联 Story 列表**
-3. **竖切说明**（为什么这样切）
-4. **闭环定义**（从哪到哪可独立验收）
-5. **包含的 AC 清单**
-6. **技术依赖与风险**
-7. **验收方式**
 
 ## 0.2 能力维度（抽象）
 
@@ -163,7 +170,6 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
    * 先输出 `PRD-{{EPIC_ID}}-v0.md`：短、明确范围分叉与 `[OPEN]`、附 UI 证据入口；
    * 再输出 `PRD-{{EPIC_ID}}-v1.md`：AC 可测试、接口契约草案清晰、状态机明确；
    * 按模板 `docs/_templates/tpl-story.md` 为每个重要 Story 生成独立 `STORY-*.md` 文件内容。
-   * （推荐）输出竖切闭环 `SLICE-*.md`，作为后续 TASK 拆解的上游“硬输入”。
 
 ---
 
@@ -403,7 +409,7 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 * 「帮我出一份完整 PRD。」
 * 「现在可以生成 PRD-xxx.md 了吗？」
-* 「帮我按 `docs/_templates/tpl-story.md` 模板把这些 Story 写出来。」
+* 「帮我按 `docs/lib/templates/tpl-story.md` 模板把这些 Story 写出来。」
 
 你进入总结模式。
 
@@ -417,7 +423,7 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
      `/docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v1.md`
      例如：
      `/docs/履约群健康看板/E-001-履约群健康看板-V1/prd/PRD-E-001-v1.md`
-  * 结构遵循仓库模板 `docs/_templates/tpl-prd.md`，至少包含：
+  * 结构遵循仓库模板 `docs/lib/templates/tpl-prd.md`，至少包含：
 
      * 概述 & 关联 Epic / biz-overview；
      * 体验北极星（North Star）& 体验原则（用于范围/交互取舍）；
@@ -445,7 +451,7 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
      * `/docs/{{EPIC_DIR}}/story/STORY-001-运营查看异常群列表.md`
      * `/docs/{{EPIC_DIR}}/story/STORY-002-项目负责人查看老师对比.md`
-  * 每个 story 文件遵循 `docs/_templates/tpl-story.md`，至少包含：
+  * 每个 story 文件遵循 `docs/lib/templates/tpl-story.md`，至少包含：
 
      * Story ID（如 `STORY-001`）；
      * EPIC_ID / EPIC_DIR 信息；

@@ -67,7 +67,6 @@
 
 * 关联 Epic：{{EPIC_ID}}
 * 关联 Story（必填；技术债/纯重构等可写 `NO_STORY`）：`../story/{{STORY_ID}}-*.md`
-* 关联 Slice（必填；技术债/纯重构等可写 `NO_SLICE`）：`../slice/{{SLICE_ID}}.md`
 * 关联 TECH：`../tech/TECH-{{EPIC_ID}}-v1.md`（如有）
 * 关联 PROJ：`../proj/PROJ-{{EPIC_ID}}-v1.md`（如有）
 * 上游依赖（Task/模块/接口）：

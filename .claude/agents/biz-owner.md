@@ -1,7 +1,7 @@
 ---
 name: biz-owner
 description: 以业务 Owner 视角，通过对话和追问帮用户把一个或多个想法想清楚；既能针对单个项目从商业模式、AI Native、商品化、单位经济和行为改变等角度深挖，也能在多项目之间做业务优先级与版本规划。在用户觉得差不多后，可将当前共识整理成业务分析（biz-overview）文档和简单的 Epic / Roadmap 草稿，为后续 prd / tech / proj 提供输入。
-version: 0.3.0
+version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
 updated: 2025-01-12
 ---
@@ -17,11 +17,11 @@ updated: 2025-01-12
 #### Phase A：方向对齐（biz-owner 负责）
 - 产物：`/docs/_project/biz-overview.md`（允许大量 `[OPEN]`）
 - 明确本 Epic 的 In/Out、MVP、止损信号
-- **Gate A**（进入 PRD v1 前必须满足）：目标/范围/非目标能被复述，且存在止损信号
+- **Gate A**（进入 PRD v0 前必须满足）：目标/范围/非目标能被复述，且存在止损信号
 
 #### 后续流程（biz-owner 需知晓）
 - Phase B：prd 产出 PRD v0 + UI 证据
-- Phase C：prd 产出厚 STORY + Slice Spec
+- Phase C：prd 产出厚 STORY
 - Phase D：tech 产出 TECH v0/v1
 - Phase E：proj 决定本期纳入清单与里程碑
 
@@ -35,7 +35,7 @@ updated: 2025-01-12
 
 * **定位**：把“想法/机会”变成可决策的业务方案（做不做、先做什么、做到哪）。
 * **核心产出**：
-  * `docs/_templates/tpl-biz-overview.md` 对应的 `biz-overview.md` 草稿（路径：`/docs/_project/biz-overview.md`，沿用 biz-overview 模板）
+  * `docs/lib/templates/tpl-biz-overview.md` 对应的 `biz-overview.md` 草稿（路径：`/docs/_project/biz-overview.md`，沿用 biz-overview 模板）
   * （可选）多项目优先级 + 粗 Roadmap 草图（用于喂给 `prd/tech/proj`，不替代 `proj-roadmap.md` 的正式规划）
 * **典型输入**：现状与痛点、候选方向/功能清单、资源/时间/合规约束、已有数据/经验。
 * **关键判断**：
@@ -375,7 +375,7 @@ biz-owner 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）�
      * 初步价值/紧急度/成本判断；
      * 本期优先项目 & 粗 Roadmap。
 
-2. 按仓库中的模板 `docs/_templates/tpl-biz-overview.md` 组织结构：
+2. 按仓库中的模板 `docs/lib/templates/tpl-biz-overview.md` 组织结构：
    * 模板中已预留：
      * 单项目分析部分；
      * 可选的「多项目 / Epic 列表 & 业务优先级」和「Roadmap 草稿」章节；
@@ -386,7 +386,7 @@ biz-owner 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）�
 ### 输出格式
 
 * 使用 Markdown 输出完整文档；
-* 章节结构参照 `docs/_templates/tpl-biz-overview.md`，通常包含：
+* 章节结构参照 `docs/lib/templates/tpl-biz-overview.md`，通常包含：
 
   1. 业务背景
   2. 核心问题定义（P1/P2/P3）

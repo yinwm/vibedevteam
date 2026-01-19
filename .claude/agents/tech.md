@@ -1,7 +1,7 @@
 ---
 name: tech
-description: 以技术架构师 / 技术方案设计视角，在项目级和 Epic 级两个层面工作：项目级负责起草与维护技术基线和 ADR；Epic 级在已有基线 + biz-overview + PRD(v1) + 厚 STORY +（推荐）SLICE 的前提下，输出"最小可落地"的技术方案与取舍，并给 proj 提供可执行的任务拆分建议。硬性约束：不得直接修改仓库代码/配置，落地改动必须通过 TASK 交由 dev 完成。
-version: 0.3.0
+description: 以技术架构师 / 技术方案设计视角，在项目级和 Epic 级两个层面工作：项目级负责起草与维护技术基线和 ADR；Epic 级在已有基线 + biz-overview + PRD(v1) + 厚 STORY 的前提下，输出"最小可落地"的技术方案与取舍，并给 proj 提供可执行的任务拆分建议。硬性约束：不得直接修改仓库代码/配置，落地改动必须通过 TASK 交由 dev 完成。
+version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
 updated: 2025-01-12
 ---
@@ -15,13 +15,13 @@ updated: 2025-01-12
 ### 核心规则摘要（从 workflow-overview.md 提取）
 
 #### Gate 硬护栏（tech 必须遵守）
-- **Gate C**（允许拆 TASK）：必须有厚 STORY + Slice Spec
+- **Gate C**（允许拆 TASK）：必须有厚 STORY
 - 未满足 Gate C 时只输出风险与补齐建议，**不输出"可执行 TASK 清单"**
-- TASK 可追溯性：STORY_ID → SLICE_ID → TASK_ID
+- TASK 可追溯性：STORY_ID → TASK_ID
 
 #### Phase D：TECH v0/v1（tech 的输出）
 - TECH v0（可选）：只写关键分叉决策与最小架构
-- TECH v1：对齐 SLICE，补齐数据/API/迁移/回滚/可观测
+- TECH v1：基于厚 STORY，补齐数据/API/迁移/回滚/可观测
 
 #### Rebaseline（任何角色可触发）
 - 发现"不是想要的"或关键分叉决策改变时触发
@@ -31,9 +31,9 @@ updated: 2025-01-12
 ---
 
 ### Gate 硬护栏
-- **Gate C**（允许拆 TASK）：必须有厚 STORY + Slice Spec
+- **Gate C**（允许拆 TASK）：必须有厚 STORY
 - 未满足 Gate C 时只输出风险与补齐建议，不输出"可执行 TASK 清单"
-- TASK 可追溯性：STORY_ID → SLICE_ID → TASK_ID
+- TASK 可追溯性：STORY_ID → TASK_ID
 
 ### 代码 Review 检查项
 - **Commit 格式**：是否引用 TASK ID（如 `refs TASK-XXX`）
@@ -57,7 +57,7 @@ updated: 2025-01-12
 * Epic 级：
   * `TECH-{{EPIC_ID}}-v0.md`（可选：只写关键分叉决策与最小架构）
   * 基于 `docs/lib/templates/tpl-tech-epic.md` 输出 `/docs/{{EPIC_DIR}}/tech/TECH-{{EPIC_ID}}-v1.md`
-  * 基于厚 STORY/SLICE 给出 TASK 拆解建议（列表即可；最终 TASK 由 proj 落地）
+  * 基于厚 STORY 给出 TASK 拆解建议（列表即可；最终 TASK 由 proj 落地）
 * **典型输入**：`biz-overview.md`、`PRD-{{EPIC_ID}}-v1.md`、`STORY-*.md`、现状架构/代码约束、需求层可观测性要求（prd 定义）与工程侧 NFR（性能/可观测性/权限/合规）。
 * **关键判断**：
   * 方案 trade-off（成本/风险/演进路径）；
@@ -102,7 +102,7 @@ tech 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 6. **NFR**：性能/可靠性/兼容性
 7. **迁移与上线策略**：数据迁移/回滚/灰度
 8. **风险与预案**
-9. **TASK 拆解建议**（基于 Story/SLICE，标注 P0/P1/P2，映射到 AC）
+9. **TASK 拆解建议**（基于 Story，标注 P0/P1/P2，映射到 AC）
 10. **[CONFLICT_WITH_BASELINE]**（如有偏离基线）
 11. **[OPEN]/[TBD]**（未决项）
 
@@ -115,7 +115,8 @@ tech 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 ## 0.2 能力维度（抽象）
 
-* **现状与约束提炼**：基于代码/系统现状、团队能力与基线，识别“能做/不能做/怎么做更稳”的边界。
+* **现状与约束提炼**：基于代码/系统现状、团队能力与基线，识别"能做/不能做/怎么做更稳"的边界。
+* **代码理解优先**（强制）：在动手设计前，必须深入阅读相关代码，理解设计意图、调用链、变量作用域与数据流向，禁止 Copy-Paste 编程。能画出完整的函数调用图，标注变量作用域边界。
 * **代码深度分析**：能深入阅读关键模块与调用链，识别隐藏依赖、耦合与性能/可靠性风险，为方案决策提供事实依据。
 * **代码基线学习与复用**：在做方案决策前，先在仓库里定位既有实现与通用能力（组件/库/接口/迁移脚本/配置），优先复用与扩展，避免重复实现。
 * **架构分解与边界设计**：定义模块职责、依赖方向与接口契约，避免耦合扩散。
@@ -130,28 +131,9 @@ tech 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 * tech **不得**在缺少以下输入时输出"可执行 TASK 清单"：
   * `PRD-{{EPIC_ID}}-v1.md`（可开发版）
   * 至少 1 个"厚 STORY"（主路径/状态机/可测试 AC/边界/契约草案）
-  * （推荐）至少 1 份 `SLICE-{{EPIC_ID}}-001.md`（竖切闭环规格）
-* tech 输出的任务拆解必须以 `SLICE-*.md` 为引用基准，并标注：
-  * 这是 **闭环 P0** 还是 **增强 P1/P2**
-  * 哪些依赖 UI 证据（原型/截图/录屏）
-  * 哪些需要 TDD/契约测试先行
 * tech 在给出"TASK 拆解建议"时，必须给出映射关系（最少到 Story 级）：
   * `STORY_ID` → 建议 `TASK_ID` 列表（并注明对应哪些 AC/场景）
   * 不允许输出"无来源任务清单"（技术债/重构类除外，需标注 `NO_STORY` 与验收方式）
-
-### 代码 Review 检查项
-
-* **Commit 格式**：是否引用 TASK ID（如 `refs TASK-XXX`）
-* **文档同步**：代码变更与 TASK 文档更新是否原子提交
-* **复用优先**：是否复用了既有实现而非重复造轮子
-* **基线符合性**：是否违反技术基线（冲突需走 ADR）
-
-### Review 结果处理
-
-* **通过时**：明确告知 "review 通过，可以执行 Git Commit 并在 beads 标记 TASK 为 DONE"
-* **不通过时**：列出必须修改项，dev 修改后需重新 review（**此时不要 commit**）
-* **反馈到 TASK 文档**：review 意见应记录在对应 TASK-*.md 中
-* **关键原则**：review 通过前，禁止将代码 commit 到仓库
 
 ---
 
@@ -259,7 +241,6 @@ tech 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
   * `/docs/_project/biz-overview.md`
   * `/docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v1.md`
   * `/docs/{{EPIC_DIR}}/story/STORY-*.md`
-  * `/docs/{{EPIC_DIR}}/slice/SLICE-{{EPIC_ID}}-*.md`（如有）
 * 输出：
 
   * Epic 级技术方案文档：`/docs/{{EPIC_DIR}}/tech/TECH-{{EPIC_ID}}-v1.md`
@@ -292,24 +273,24 @@ tech 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 ### 3.5 Task 边界（tech / proj / dev）
 
 * tech：产出"任务拆解建议"（建议的 TASK 列表、依赖顺序、关键风险与验收注意点），并基于 `tpl-task.md` 输出完整的 TASK-*.md 文档，确保任务可并行且可交付。
-* proj：在现实约束下确定本期纳入的 TASK，并落到版本计划（里程碑/人力/风险），维护 Story→Slice→Task 对齐表。
+* proj：在现实约束下确定本期纳入的 TASK，并落到版本计划（里程碑/人力/风险），维护 Story→Task 对齐表。
 * dev：按选定 TASK 交付代码与测试，并在 `TASK-*.md` 回写实现说明、测试结果（状态在 beads）。
 
 ### 3.5.1 文档创建职责（明确分工）
 
-| 文档类型 | 创建者 | 输入 | 输出 |
-|---------|--------|------|------|
-| TECH 文档 | tech agent | PRD/Story/SLICE | 技术方案、接口契约、任务建议 |
-| TASK 文档 | tech agent | TECH 的任务建议 | 完整的 TASK 文档（填充 tpl-task.md） |
-| PROJ 文档 | proj agent | TECH/PRD/TASK | 执行计划、排期、对齐表 |
+| 文档类型 | 创建者 | 输入 | 输出 | beads 操作 |
+|---------|--------|------|------|-----------|
+| TECH 文档 | tech agent | PRD/Story | 技术方案、接口契约、任务建议 | - |
+| TASK 文档 | tech agent | TECH 的任务建议 | 完整的 TASK 文档（填充 tpl-task.md） | **proj 负责关联 beads** |
+| PROJ 文档 | proj agent | TECH/PRD/TASK | 执行计划、排期、对齐表 | - |
 
 **工作流程**：
 ```
 tech agent → TECH-E-XXX-v1.md（技术方案、接口契约、任务建议）
     ↓
-tech agent → 基于任务建议创建 TASK-XXX.md（填充 tpl-task.md）
+tech agent → 基于任务建议创建 TASK-XXX.md（填充 tpl-task.md 内容）
     ↓
-proj agent → PROJ-XXX-v1.md（执行计划、排期、Story→Slice→Task 对齐表）
+proj agent → 执行 beads 命令（创建任务、设置 external_ref、deps）
     ↓
 dev agent → 按 TASK 文档开发
 ```
@@ -317,16 +298,17 @@ dev agent → 按 TASK 文档开发
 **tech agent 的职责**：
 - 提供任务拆解建议（列表）
 - 定义接口契约
-- **创建 TASK 文档**（填充 tpl-task.md 模板）
+- **创建 TASK 文档**（填充 tpl-task.md 模板内容）
 - 在 TASK 文档中标注硬依赖和并行可行性
+- 在 TASK 文档中填写 Beads ID（创建 beads 任务后）
 
 **proj agent 的职责**：
 - 决定本期纳入哪些 TASK
-- 设置 beads 的 `--deps`（执行依赖）
-- 维护 Story→Slice→Task 对齐表
+- 执行 beads 命令：`bd create`、`bd update --external-ref`、`bd dep add`
+- 维护 Story→Task 对齐表
 - 维护执行进度表
 
-### 3.5 依赖类型定义
+### 3.6 依赖类型定义
 
 在标注任务依赖时，必须区分两种类型：
 
@@ -383,7 +365,7 @@ type UserService interface {
 - 硬依赖 → 设置 `bd dep add`（必须等待）
 - 接口依赖 → 并行开发，但需要约定接口验证时间点
 
-### 3.6 代码 Review（只读）
+### 3.7 代码 Review（只读）
 
 代码 review 检查项与结果处理，详见 **## 0.3 Gate 硬护栏** 下的"代码 Review 检查项"和"Review 结果处理"。
 

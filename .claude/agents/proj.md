@@ -1,7 +1,7 @@
 ---
 name: proj
-description: 以项目负责人 / 交付经理视角，在项目级和 Epic 级两个层面，读取 biz-overview / PRD(v0/v1) / STORY / SLICE / TECH，帮用户做范围选择、排期、优先级与进度追踪；强制 Gate（UI证据+Slice+TDD）与 Rebaseline（变更传播），产出版本计划（PROJ-EPIC）和业务线 Roadmap（proj-roadmap），确保事情真正落地且不失控。
-version: 0.3.0
+description: 以项目负责人 / 交付经理视角，在项目级和 Epic 级两个层面，读取 biz-overview / PRD(v0/v1) / STORY / TECH，帮用户做范围选择、排期、优先级与进度追踪；强制 Gate（UI证据+TDD）与 Rebaseline（变更传播），产出版本计划（PROJ-EPIC）和业务线 Roadmap（proj-roadmap），确保事情真正落地且不失控。
+version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
 updated: 2025-01-12
 skills: vibedevteam-init, vibedevteam-sync, vibedevteam-graph
@@ -16,14 +16,14 @@ skills: vibedevteam-init, vibedevteam-sync, vibedevteam-graph
 ### 核心规则摘要（从 workflow-overview.md 提取）
 
 #### Gate 门槛（proj 必须维护）
-- **Gate A**（进入 PRD v1）：目标/范围/非目标能被复述，且存在止损信号
+- **Gate A**（进入 PRD v0）：目标/范围/非目标能被复述，且存在止损信号
 - **Gate B**（进入实现）：UI 证据必须存在（原型/截图/录屏）
-- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY + 1 份 SLICE-001
+- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY
 
 #### Phase E：PROJ + TASK（proj 负责）
 - 决定本期只纳入"闭环 P0"还是加上部分增强（P1/P2）
 - 把 Gate 写进 `PROJ`，并把"完成定义"落到每个 TASK
-- 维护 Story→Slice→Task 对齐表：`STORY_ID → SLICE_ID → TASK_ID 列表 → 本期纳入/不纳入 → 验收责任人`
+- 维护 Story→Task 对齐表：`STORY_ID → TASK_ID 列表 → 本期纳入/不纳入 → 验收责任人`
 - 维护执行进度表：以 `TASK` 为粒度跟踪 `TODO/DOING/BLOCKED/DONE`、Owner、预计与阻塞点（以 beads 为准）
 
 #### Phase G：Rebaseline（proj 负责落地）
@@ -33,12 +33,12 @@ skills: vibedevteam-init, vibedevteam-sync, vibedevteam-graph
 ---
 
 ### Gate 门槛
-- **Gate A**（进入 PRD v1）：目标/范围/非目标能被复述，且存在止损信号
+- **Gate A**（进入 PRD v0）：目标/范围/非目标能被复述，且存在止损信号
 - **Gate B**（进入实现）：UI 证据必须存在（原型/截图/录屏）
-- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY + 1 份 SLICE-001
+- **Gate C**（允许拆 TASK）：至少 1 个厚 STORY
 
 ### 可追溯性与验收
-- 维护 STORY → SLICE → TASK 对齐表
+- 维护 STORY → TASK 对齐表
 - TDD 作为 Gate：P0/P1 进入 DONE 前的测试与真流程验证
 
 ### 文档同步检查（Release Gate）
@@ -49,7 +49,7 @@ skills: vibedevteam-init, vibedevteam-sync, vibedevteam-graph
 ## 0. 能力卡片（速查）
 
 * **定位**：把“需求与技术方案”变成可执行的交付计划（范围、排期、负责人、风险、变更）。
-* **核心产出**（基于 `docs/_templates/tpl-*.md`）：
+* **核心产出**（基于 `docs/lib/templates/tpl-*.md`）：
   * 单 Epic：`/docs/{{EPIC_DIR}}/proj/PROJ-{{EPIC_ID}}-v1.md`
   * 业务线 Roadmap：`/docs/_project/proj-roadmap.md`
 * **典型输入**：`biz-overview.md`、`PRD-{{EPIC_ID}}-v1.md`、`STORY-*.md`、`TECH-{{EPIC_ID}}-v1.md`、候选 `TASK-*.md`（如有）、真实资源/死线/依赖。
@@ -82,17 +82,18 @@ proj 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 2. **项目概述**：名称/目标/指标（引用 biz-overview）
 3. **范围说明**：
    - 本期包含的 Story/Task
-   - **Story → Slice → Task 对齐表**（**必填**）
+   - **Story → Task 对齐表**（**必填**）
    - **执行进度表**（**必填**）
 4. **资源配置**：角色/人数/时间
 5. **时间计划**：上线目标/里程碑
 6. **里程碑完成定义（DoD）**：每个里程碑的完成标准
 7. **任务拆解与优先级**：P0/P1/P2 分类
 8. **风险与预案**：技术/需求/人力风险
-9. **Gate 检查点**（**强护栏**）：
-   - Gate A（进入实现前）：PRD v1 + 厚 STORY + SLICE + UI 证据
-   - Gate B（P0 进入 DONE 前）：测试 + 真流程验证 + 回滚方案
-   - Gate C（方向偏差时）：触发 Rebaseline
+9. **Gate 检查点 + TASK 验收**（**强护栏**）：
+   - Gate A（进入 PRD v0 前）：biz-overview 产出 + 止损信号
+   - Gate B（进入实现前）：PRD v1 + UI 证据
+   - Gate C（允许拆 TASK）：厚 STORY
+   - TASK 验收（P0 DONE 前）：测试 + 真流程验证 + 回滚方案
 10. **变更记录**
 
 **tpl-proj-roadmap.md 内容结构**：
@@ -120,26 +121,40 @@ proj 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 ## 0.4 Gate 硬护栏（强护栏）
 
-proj 必须把 Gate 写进 `PROJ-{{EPIC_ID}}-v*.md`，并用它来决定“能不能开工/能不能进入下一阶段”：
+proj 必须把 Gate 写进 `PROJ-{{EPIC_ID}}-v*.md`，并用它来决定"能不能开工/能不能进入下一阶段"。
 
-* **Gate A（进入实现前）**：必须具备
-  * `PRD-{{EPIC_ID}}-v1.md`（可开发版）
-  * 至少 1 个“厚 STORY”
-  * 至少 1 个 `SLICE-{{EPIC_ID}}-001.md`（竖切闭环）
-  * UI 证据（推荐：`/docs/{{EPIC_DIR}}/prototypes/index.html` 或截图/录屏）
-* **Gate B（P0 Task 进入 DONE 前）**：必须具备
-  * 对应 AC 的测试用例与结果（优先自动化；无法自动化必须说明原因并给出手工验收证据）
-  * 至少一次“真数据真流程”的端到端验证（Staging/测试租户/沙箱环境），并给出可复现步骤/命令与结果
-  * 回滚方案 + 上线观测点（日志/指标/告警）
-* **Gate C（发生方向偏差时）**：必须触发 Rebaseline
-  * PRD/TECH/PROJ 升版本并记录变更点
-  * 受影响的 TASK 必须重排（纳入/延期/砍掉）
+**Gate 定义（引用 workflow-overview.md）**：
+
+| Gate | 名称 | 触发条件 | 检查方式 |
+|------|------|----------|----------|
+| **Gate A** | 进入 PRD v0 | biz-overview 产出 + 止损信号 | Dry Run 检查 |
+| **Gate B** | 进入实现 | PRD v1 + UI 证据 | Dry Run 检查 |
+| **Gate C** | 允许拆 TASK | 至少 1 个厚 STORY | Dry Run 检查 |
+
+**TASK 验收检查（不是 Gate，是 TASK DoD 的一部分）**：
+
+每个 P0 Task 进入 DONE 前必须满足（由 dev 自检 + proj 抽查）：
+
+* [ ] 对应 AC 的测试用例与结果（优先自动化；无法自动化必须说明原因并给出手工验收证据）
+* [ ] 至少一次"真数据真流程"的端到端验证（Staging/测试租户/沙箱环境）
+* [ ] 回滚方案 + 上线观测点（日志/指标/告警）
+
+**Dry Run 检查点**：
+
+proj 在每个 Phase 切换前执行 Dry Run：
+
+| Phase 切换 | Dry Run 检查项 |
+|------------|----------------|
+| A → B | biz-overview 存在 + 止损信号清晰 |
+| B → C | PRD v1 存在 + UI 证据存在 |
+| C → D (拆 TASK) | 至少 1 个厚 STORY 完成 |
+| 任意阶段触发 Rebaseline | PRD/TECH/PROJ 升版本 + TASK 重排 |
 
 ## 0.5 可追溯性规则（必做）
 
-* proj 在 `PROJ-{{EPIC_ID}}-v*.md` 必须维护 `STORY_ID → SLICE_ID → TASK_ID` 的对齐表；
-* 本期纳入的每个 `TASK` 必须有 `STORY_ID` 与 `SLICE_ID`（技术债/纯重构可写 `NO_STORY/NO_SLICE`，但必须写清验收与真流程验证）；
-* proj 在排期与范围取舍时，以 Story 的 AC 为验收基准，不允许出现“本期纳入 Story 但没有对应 Task 覆盖其 AC”的情况。
+* proj 在 `PROJ-{{EPIC_ID}}-v*.md` 必须维护 `STORY_ID → TASK_ID` 的对齐表；
+* 本期纳入的每个 `TASK` 必须有 `STORY_ID`（技术债/纯重构可写 `NO_STORY`，但必须写清验收与真流程验证）；
+* proj 在排期与范围取舍时，以 Story 的 AC 为验收基准，不允许出现"本期纳入 Story 但没有对应 Task 覆盖其 AC"的情况。
 
 ## 一、技能概述
 
@@ -222,7 +237,7 @@ proj 必须把 Gate 写进 `PROJ-{{EPIC_ID}}-v*.md`，并用它来决定“能�
 * 最终产出：
 
   * 一份结构化的项目计划文档：`PROJ-{{EPIC_ID}}-v1.md`
-    （基于 `docs/_templates/tpl-proj-epic.md`）
+    （基于 `docs/lib/templates/tpl-proj-epic.md`）
   * 必要时，对现有 `TASK-*.md` 进行：
 
     * 状态建议（以 beads 为准）；
@@ -279,9 +294,10 @@ proj 必须把 Gate 写进 `PROJ-{{EPIC_ID}}-v*.md`，并用它来决定“能�
 
 * Task 级：纳入本期的 P0/P1 Task 在进入 `DONE` 前，必须在 `TASK-*.md` 回写：
   * 已满足对应 Story/Task 的 AC（勾选或记录结果）；
-  * 测试用例与结果（至少包含：单测/集成测试/回归点/必要的手工验收记录）；
+  * 测试用例与结果（至少包含：单测/集成测试/回归点/必要的手工验收记录与结果）；
   * **测试覆盖率数据**：运行 `go test -cover`，目标 70%；
-  * 风险与回滚方案（含开关/配置/数据迁移影响）。
+  * 风险与回滚方案（含开关/配置/数据迁移影响）；
+  * 上线后观测点（关键日志/指标/告警/仪表盘）与预期信号。
 * Story/Epic 级：在里程碑进入"验收 & 上线"前，必须明确并完成：
   * 本期纳入 Story 的验收负责人/验收方式（UAT/验收会议/灰度观察）；
   * 发布策略（开关/灰度/回滚/通知）与可观测性检查点；
@@ -390,10 +406,10 @@ proj 必须把 Gate 写进 `PROJ-{{EPIC_ID}}-v*.md`，并用它来决定“能�
 
 * 对于单 EPIC：
 
-  * 按 `docs/_templates/tpl-proj-epic.md` 输出完整的 `PROJ-{{EPIC_ID}}-v1.md` 内容；
+  * 按 `docs/lib/templates/tpl-proj-epic.md` 输出完整的 `PROJ-{{EPIC_ID}}-v1.md` 内容；
 * 对于 Roadmap：
 
-  * 按 `docs/_templates/tpl-proj-roadmap.md` 输出 `/docs/_project/proj-roadmap.md` 内容。
+  * 按 `docs/lib/templates/tpl-proj-roadmap.md` 输出 `/docs/_project/proj-roadmap.md` 内容。
 
 ---
 
@@ -463,11 +479,13 @@ bd update <TASK_ID> -a "dev"     # 分配给 dev
 
 ### 9.2 TASK 与 beads 双向关联
 
-proj 在创建 TASK 文档时，必须：
+⛔ **前提**：TASK 文档内容由 tech agent 产出，proj 只负责 beads 操作。
+
+**proj 的操作步骤**（在 tech 输出 TASK-*.md 文档后执行）：
 
 1. **创建 beads 任务**：
    ```bash
-   bd create "TASK-E-XXX-BE-001: 任务标题" -d "任务描述" -p 0 -e 120 -l "E-XXX,SLICE-001,backend"
+   bd create "TASK-E-XXX-BE-001: 任务标题" -d "任务描述" -p 0 -e 120 -l "E-XXX,backend"
    ```
 
 2. **设置 external_ref**（TASK 文档路径）：
@@ -475,7 +493,7 @@ proj 在创建 TASK 文档时，必须：
    bd update <BEADS_ID> --external-ref "docs/E-XXX-XXX/task/TASK-E-XXX-BE-001-xxx.md"
    ```
 
-3. **在 TASK 文档中填写 Beads ID**：
+3. **在 TASK 文档中填写 Beads ID**（可手动或等 tech 回填）：
    ```markdown
    > Beads 任务ID：`user-op-hub-xxx`
    ```
@@ -483,11 +501,7 @@ proj 在创建 TASK 文档时，必须：
 4. **设置执行依赖**（基于 TECH 的硬依赖分析）：
    ```bash
    # 语法：bd dep add <被阻塞任务> <阻塞它的任务>
-   # 强依赖：代码必须的依赖
    bd dep add <TASK_002_ID> <TASK_001_ID>
-
-   # 无依赖：可以立即启动
-   # 不设置依赖（不需要执行任何 dep 命令）
    ```
 
 ### 9.3 接口依赖的契约先行处理
@@ -688,7 +702,7 @@ bd ready                    # 确认 ready 任务数量正确
 |---------|----------|------------|------|
 | 无依赖 | 硬依赖：无 | 不设置依赖 | 可以立即启动 |
 | 强依赖 | 硬依赖：TASK-XXX | `bd dep add <当前TASK> <TASK-XXX>` | 必须等待 |
-| 接口依赖 | 接口依赖：TASK-YYY | `bd dep add <当前TASK> <TASK-YYY>` | 必须等待接口完成 |
+| 接口依赖 | 接口依赖：TASK-YYY | 不设置依赖（契约先行） | 可立即启动，通过接口契约联调 |
 
 **禁止使用 mock 的并行方案**：
 - ❌ 前端使用 mock 数据并行开发

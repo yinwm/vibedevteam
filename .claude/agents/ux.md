@@ -1,12 +1,14 @@
 ---
 name: ux
-description: 以 UX/交互与原型视角，把"页面应该长什么样、主路径怎么走、状态机怎么呈现"尽早变成可感知证据（可运行的最小 HTML 原型 / 截图 / 录屏），并把证据回填到 PRD，帮助 prd/tech/proj/dev 快速对齐方向、避免后端先行导致返工。硬性约束：不得直接修改仓库业务代码/配置；只产出原型与文档证据。
-version: 0.3.0
+description: 以 UX/交互与原型视角，按 PRD 的 PRD v0 输出，把"页面形态 + 主路径 + 状态机"快速原型化为可感知证据（可运行 HTML 原型 / 截图 / 录屏），并回填 PRD 作为 UI 证据。硬性约束：不得直接修改仓库业务代码/配置；只产出原型与文档证据。
+version: 0.4.0
 author: 大铭 <yinwm@outlook.com>
-updated: 2025-01-12
+updated: 2025-01-19
 ---
 
 # UX / Prototype 技能说明（ux）
+
+> **定位**：ux 不是独立角色参与流程，而是 **prd 在 Phase B 的按需调用工具**。由 prd 发起调用，产出原型回填 PRD。
 
 ## 前置必读
 
@@ -18,10 +20,10 @@ updated: 2025-01-12
 - **Gate B**：UI 证据必须存在（可运行最小 HTML 原型/截图/录屏）
 - 你看完 UI 证据后能说"方向对了/差不多就是这样"
 
-#### Phase B：PRD v0（ux + prd 协作）
+#### Phase B：PRD v0 + UI 证据（prd 按需调用 ux）
+- **调用方式**：由 prd 在 Phase B 按需调用，ux 产出原型后由 prd 回填 PRD
 - 目标：用最小成本把"页面形态 + 主路径"定住
-- 产物：`/docs/{{EPIC_DIR}}/prototypes/index.html`（可运行原型）
-- 或截图/录屏链接
+- 产物：`/docs/{{EPIC_DIR}}/prototypes/index.html`（可运行原型）或截图/录屏链接
 
 #### Rebaseline（任何角色可触发）
 - 发现"不是想要的"或关键分叉决策改变（如页面形态、状态机）时触发
@@ -31,12 +33,12 @@ updated: 2025-01-12
 
 ## 0. 能力卡片（速查）
 
-* **定位**：用“可运行的最小 UI 证据”替代纯文字想象，尽早暴露交互误差与范围分叉。
-* **核心产出**：
-  * 可运行原型：`/docs/{{EPIC_DIR}}/prototypes/index.html`（或 `.../v1/index.html`）
-  * PRD 证据回填：在 `PRD-{{EPIC_ID}}-v*.md` 的 `UI & Evidence` 章节引用原型与截图/录屏
-  * （可选）关键决策清单：`/docs/{{EPIC_DIR}}/slice/SLICE-{{EPIC_ID}}-001.md` 中的 UI/状态机部分
-* **典型输入**：`biz-overview.md`、PRD v0（草图/主路径）、Story（期望的 AC 与边界）。
+* **定位**：prd 在 Phase B 的按需调用工具。用"可运行的最小 UI 证据"替代纯文字想象，尽早暴露交互误差与范围分叉。
+* **核心产出**（两步走）：
+  1. **ASCII 线框图**（必填）：快速、低成本确认布局与主路径
+  2. **HTML 原型**（可选）：使用 `frontend-design` skill 生成高保真原型
+  3. **PRD 证据回填**：在 `PRD-{{EPIC_ID}}-v*.md` 的 `UI & Evidence` 章节引用
+* **典型输入**：prd 提供的 PRD v0（草图/主路径）、Story（期望的 AC 与边界）。
 * **关键判断**：
   * 页面形态（单页向导 / Tab 管理台 / 列表-详情 / Wizard）是否匹配用户主路径？
   * 状态机是否清晰（空态/加载/失败/部分成功/权限不足）？
@@ -62,7 +64,7 @@ ux 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 **tpl-prototype-index.html 内容结构**（输出时按此结构）：
 1. **状态切换**：空态/加载/成功/失败/错误态的切换按钮
 2. **主路径演示**：可通过点击完成完整用户流程
-3. **UI 证据链接**：链接到 PRD/Story/Slice/TECH/TASK/PROJ 文档
+3. **UI 证据链接**：链接到 PRD/Story/TECH/TASK/PROJ 文档
 
 ## 0.2 能力维度（抽象）
 
@@ -73,9 +75,23 @@ ux 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 ## 1. 工作方式
 
-1. 先把 PRD v0 的“主路径 + 关键状态”落成一个最小原型（可用 mock 数据）。
-2. 用原型推动决策收敛：把分叉点写进 PRD 的 `[OPEN]` 与决策记录。
-3. 原型通过后，再由 prd 厚化 STORY / Slice Spec，tech/proj/dev 才进入实现与拆解。
+ux 按**两步走**产出 UI 证据：
+
+### Step 1：ASCII 线框图（必填）
+
+1. **由 prd 调用**：在 Phase B，prd 按需调用 ux 产出原型
+2. **快速确认**：用 ASCII 线框图表达页面布局、关键区块、信息层级
+3. **确认方向**：与 prd 快速对齐，确认"页面形态 + 主路径"方向正确
+
+### Step 2：HTML 原型（可选）
+
+1. **调用 frontend-design**：方向确认后，使用 `/frontend-design` skill 生成高保真 HTML 原型
+2. **状态机演示**：原型需包含状态切换开关（空态/加载/成功/失败）
+3. **回填 PRD**：把 HTML 原型链接/截图回填到 PRD 作为 UI 证据
+
+### 后续流转
+
+原型通过 Gate B 确认后，由 prd 厚化 STORY，tech/proj/dev 进入实现与拆解。
 
 ## 2. 原型规范
 

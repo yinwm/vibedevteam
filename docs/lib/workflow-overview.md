@@ -1,10 +1,10 @@
-# 工作流总览：以 UI 证据 + Slice + TDD 驱动交付
+# 工作流总览：以 UI 证据 + 用户旅程 + TDD 驱动交付
 
 > 目的：修复"文档写很全 → 任务拆很细 → 后端做完才看见页面 → 发现不是想要的"的结构性问题。
 >
 > 核心变化：
 > 1) **UI 证据前置**（可运行最小 HTML 原型/截图/录屏），尽早对齐页面形态与主路径；
-> 2) **Slice Spec** 作为 STORY 与 TASK 之间的硬输入，避免 TECH 直接拆 TASK 失真；
+> 2) **用户旅程** 在 PRD v0 中合并，帮助理解用户体验；**厚 STORY** 作为交付规格，避免 TECH 直接拆 TASK 失真；
 > 3) **TDD/Gate/Rebaseline** 机制写进 `PROJ`，把"能不能开工/能不能 DONE"制度化。
 
 **相关文档**：
@@ -13,18 +13,17 @@
 
 ---
 
-## 1. 角色分工（新增 ux，可选）
+## 1. 角色分工
 
 * `biz-owner`：定方向与边界（In/Out、MVP、止损信号、成功指标）。
-* `prd`：产出 PRD v0/v1、厚 STORY、（推荐）SLICE；在 PRD 中固化 UI 证据与可测试 AC。
-* `ux`（可选但推荐）：做可运行最小原型（`/docs/{{EPIC_DIR}}/prototypes/...`），把“页面长什么样”变成证据回填 PRD。
-* `tech`：基于厚 STORY/SLICE 输出最小可落地方案与 trade-off；不在缺少输入时输出可执行 TASK 清单。
-* `proj`：写 Gate 与 Rebaseline；决定本期纳入清单与里程碑；用 Gate 控制“能不能进入实现/能不能 DONE”。
+* `prd`：产出 PRD v0/v1、厚 STORY；在 PRD 中固化 UI 证据与可测试 AC，包含用户旅程帮助理解用户体验。**按需调用 ux 能力**产出可运行原型（`/docs/{{EPIC_DIR}}/prototypes/...`）。
+* `tech`：基于厚 STORY 输出最小可落地方案与 trade-off；不在缺少输入时输出可执行 TASK 清单。
+* `proj`：写 Gate 与 Rebaseline；决定本期纳入清单与里程碑；用 Gate 控制"能不能进入实现/能不能 DONE"。
 * `dev`：唯一允许改代码/配置；以 TDD/契约优先交付并回写证据。
 
 ---
 
-## 2. 文档地图（新增 Slice / Prototypes）
+## 2. 文档地图（新增用户旅程 / Prototypes）
 
 ```text
 /docs
@@ -35,7 +34,6 @@
       tpl-biz-overview.md
       tpl-prd.md
       tpl-story.md
-      tpl-slice-spec.md
       tpl-tech-epic.md
       tpl-task.md
       tpl-proj-epic.md
@@ -49,14 +47,12 @@
     adr/                        # 架构决策记录
   /{{EPIC_DIR}}                 # Epic 文档
     prd/
-      PRD-{{EPIC_ID}}-v0.md
+      PRD-{{EPIC_ID}}-v0.md        # 包含用户旅程
       PRD-{{EPIC_ID}}-v1.md
     story/
       STORY-{{EPIC_ID}}-*.md
     prototypes/
-      index.html
-    slice/
-      SLICE-{{EPIC_ID}}-001.md
+      index.html                    # UI 证据
     tech/
       TECH-{{EPIC_ID}}-v0.md
       TECH-{{EPIC_ID}}-v1.md
@@ -83,20 +79,24 @@
 Gate A（进入 PRD v0 前必须满足）：
 * 目标/范围/非目标能被复述，且存在止损信号。
 
-### Phase B：PRD v0（prd + ux）
+### Phase B：PRD v0 + 用户旅程 + UI 证据（prd，按需调用 ux 两步走）
 
-目标：用最小成本把“页面形态 + 主路径”定住。
+**目标**：用最小成本把"页面形态 + 主路径 + 用户体验"定住。
 
-产物：
-* `PRD-{{EPIC_ID}}-v0.md`（短：主路径 + 关键状态 + 分叉点 + `[OPEN]`）
-* UI 证据入口：
-  * 推荐：`/docs/{{EPIC_DIR}}/prototypes/index.html`
-  * 或截图/录屏链接
+**两步走流程**：
+1. **ASCII 线框图**（必填）：prd 按需调用 ux，用 ASCII 线框图快速确认布局与主路径
+2. **HTML 原型**（可选）：方向确认后，使用 `frontend-design` skill 生成高保真原型
 
-Gate B（进入实现前必须满足）：
-* 你看完 UI 证据后能说“方向对了/差不多就是这样”。
+**产物**：
+* `PRD-{{EPIC_ID}}-v0.md`（包含：用户旅程 + 主路径 + 关键状态 + 分叉点 + `[OPEN]`）
+  * **用户旅程**：简化版，帮助理解用户在特定场景下的体验流程
+  * **主路径**：产品的主要交互路径
+  * **UI 证据**：ASCII 线框图 +（可选）HTML 原型链接
 
-### Phase C：厚 STORY + Slice Spec（prd 主导，tech 参与）
+**Gate B**（进入实现前必须满足）：
+* 你看完 UI 证据（至少 ASCII 线框图）后能说"方向对了/差不多就是这样"。
+
+### Phase C：厚 STORY（prd 主导，tech 参与）
 
 厚 STORY（最低标准）必须包含：
 * 主路径步骤（可被手工验收复现）
@@ -106,23 +106,17 @@ Gate B（进入实现前必须满足）：
 * 接口契约草案（请求/响应/错误码/状态字段）
 * UI 证据引用
 
-Slice Spec（SLICE-001）建议只做“一刀竖切闭环”：
-* 交付闭环定义（能用/能验收）
-* 最小接口契约
-* TDD 计划（先测什么）
-* Out of scope（明确延后）
-
 Gate C（允许拆 TASK）：
-* 至少 1 个厚 STORY + 1 份 SLICE-001。
+* 至少 1 个厚 STORY。
 
 ### Phase D：TECH v0/v1（tech）
 
 TECH v0（可选）：只写关键分叉决策与最小架构。
 
-TECH v1：对齐 SLICE，补齐数据/API/迁移/回滚/可观测。
+TECH v1：基于厚 STORY 补齐数据/API/迁移/回滚/可观测方案。
 
 硬护栏：
-* 未满足 Gate C 时，tech 不输出“可执行 TASK 清单”；只输出风险与需要补齐的输入。
+* 未满足 Gate C 时，tech 不输出"可执行 TASK 清单"；只输出风险与需要补齐的输入。
 
 ### Phase E：PROJ + TASK（proj + tech 建议）
 
@@ -130,24 +124,52 @@ proj 做两件事：
 1) 决定本期只纳入“闭环 P0”还是加上部分增强（P1/P2）。
 2) 把 Gate 写进 `PROJ`，并把“完成定义”落到每个 TASK。
 
-**新增硬规则：Story→Slice→Task 可追溯性（Traceability）**
+**新增硬规则：Story→Task 可追溯性（Traceability）**
 
 * 本期纳入的每个 `TASK` 必须能追溯到：
   * `STORY_ID`（来源需求）
-  * `SLICE_ID`（属于哪个竖切闭环）
 * 允许例外：技术债/纯重构/基础设施类任务可以标注 `NO_STORY`，但必须写清：
   * 为什么本期要做
   * 如何验收（可测试/真流程）
 
-proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的“硬证据入口”）：
+proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的"硬证据入口"）：
 
-* `STORY_ID` → `SLICE_ID` → `TASK_ID 列表` → 本期纳入/不纳入 → 验收责任人
+* `STORY_ID` → `TASK_ID 列表` → 本期纳入/不纳入 → 验收责任人
 
 同时，proj 必须维护一张执行进度表（Progress Table）：
 * 以 `TASK` 为粒度，跟踪 `TODO/DOING/BLOCKED/DONE`、Owner、预计与阻塞点；
 * 证据入口必须链接到对应 `TASK-*.md`（测试/真流程/回滚/观测点都在 Task 文档回写）。
 
 ### Phase F：实现（dev，TDD 优先）
+
+#### 🟢 特殊情况：快速修复模式（Quick Fix Mode）
+
+**适用场景**：
+- 紧急 BUG 修复
+- 小改动（几行代码）
+- 不需要走 Epic/Story/Task 流程的临时修改
+
+**工作流程**：
+1. 修改代码
+2. 等待用户确认
+   - 用户说"提交了" → git commit
+   - 用户说"推了" → git push
+   - 用户说"算了" → git restore
+3. 不要自动 commit/push
+
+**与 Epic 开发的区别**：
+| | 快速修复模式 | Epic 开发模式 |
+|---|---|---|
+| 触发 | 用户说"先改了再说" | 有 TASK 文档 |
+| 流程 | 修改 → 等确认 → commit → push | review → commit → push → bd close |
+| beads | 不涉及 | 必须同步 |
+| 文档 | 可选 | 必须更新 |
+
+⚠️ **注意**：快速修复模式只适用于真正的小改动。任何需要设计、测试、上线的功能都应该走 Epic 开发模式。
+
+---
+
+#### 标准提交流程（Epic 开发模式）
 
 **提交流程（硬性约束）**：
 1. 完成代码 + 文档更新
@@ -172,6 +194,7 @@ proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的“硬�
 
 **TDD 规则**：
 * P0/P1 默认先写测试（或至少先写可运行的测试计划与断言清单）再写实现；
+* **测试覆盖率目标：70%**（运行 `go test -cover` 或 `pnpm test --coverage`）；
 * UI 原型允许使用 mock 数据（为了快速对齐交互与状态机）；
 * 交付验证（测试）必须包含"真数据真流程"的验证：
   * 最少要求：对本期纳入的 P0/P1 闭环，跑一遍可复现的端到端流程（Staging/测试租户/沙箱环境皆可）；
@@ -182,7 +205,7 @@ proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的“硬�
 
 **当 Dev 发现文档假设错误时的处理流程**：
 
-开发时如果发现文档（PRD/TECH/SLICE）中的假设与实际代码不符，**必须**按以下流程处理：
+开发时如果发现文档（PRD/TECH/Story）中的假设与实际代码不符，**必须**按以下流程处理：
 
 ```
 发现文档假设错误
@@ -195,10 +218,10 @@ proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的“硬�
     ↓
 3. 判断影响范围
    - 只影响当前 TASK？→ 只更新 TASK 文档
-   - 影响 PRD/TECH/SLICE？→ 必须同步更新
+   - 影响 PRD/TECH/Story？→ 必须同步更新
     ↓
 4. 更新上游文档（如需要）
-   - 更新 PRD/TECH/SLICE 中的错误假设
+   - 更新 PRD/TECH/Story 中的错误假设
    - 标注变更原因和实际发现
     ↓
 5. 在 commit message 中说明
@@ -257,7 +280,7 @@ proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的“硬�
 
 ---
 
-## 4. TDD 作为 Gate（建议写入 PROJ）
+## 5. TDD 作为 Gate（建议写入 PROJ）
 
 * P0/P1 Task 进入 DONE 前必须有：
   * 对应 AC 的测试（自动化优先）与可复现的运行命令 + 结果
@@ -266,10 +289,64 @@ proj 必须在 `PROJ-*.md` 维护一张对齐表（本期纳入清单的“硬�
 
 ---
 
-## 5. 快速使用指南（最小集）
+## 6. 模拟运行 Dry Run（proj 负责）
+
+### 核心目标
+
+从 STORY 出发，模拟完整开发链路，发现隐藏问题。
+
+```
+PRD → STORY → TECH → TASK → 验收 → 上线
+   ↓         ↓       ↓
+  需求      接口    实现
+```
+
+### 触发时机
+
+* **STORY 验收前**：验证 STORY 是否能追溯到 PRD
+* **TASK 拆解后**：验证 TASK 是否覆盖 STORY AC
+* **Phase 切换前**：验证完整链路是否通顺
+* **Rebaseline 前**：验证变更影响范围
+
+### 执行方式
+
+```bash
+使用 /vibedevteam:dryrun skill 执行模拟运行
+```
+
+### 链路检查（6 步）
+
+| 步骤 | 检查 | 发现问题 |
+|------|------|----------|
+| 1 | PRD → STORY | STORY 是否有需求来源 |
+| 2 | STORY → TECH | 接口是否定义完整 |
+| 3 | STORY → TASK | AC 是否可拆成 TASK |
+| 4 | TASK 依赖 | 是否有循环依赖 |
+| 5 | TASK 验收 → STORY AC | 验收是否覆盖 AC |
+| 6 | 真流程验证 | 是否有前置依赖 |
+
+### 问题级别
+
+| 级别 | 定义 | 处理 |
+|------|------|------|
+| **P0** | 阻塞，无法继续开发 | 必须修复 |
+| **P1** | 严重，后续大量返工 | 建议修复 |
+| **P2** | 警告，可后续优化 | 可选修复 |
+
+### 报告输出
+
+模拟运行输出结构化报告，包含：
+- 6 步链路检查结果
+- P0/P1/P2 问题列表
+- 改进建议
+- 整体结论（通过 / 需修复后通过）
+
+---
+
+## 7. 快速使用指南（最小集）
 
 * 新建 Epic 时先创建：
-  * `PRD-{{EPIC_ID}}-v0.md`
+  * `PRD-{{EPIC_ID}}-v0.md`（包含用户旅程）
   * `docs/{{EPIC_DIR}}/prototypes/index.html`（可选但推荐）
-  * `SLICE-{{EPIC_ID}}-001.md`
-* 先做 SLICE-001 的闭环 P0，再迭代增强。
+  * `STORY-{{EPIC_ID}}-001.md`
+* 先做一个垂直切片验证核心价值，再迭代增强。

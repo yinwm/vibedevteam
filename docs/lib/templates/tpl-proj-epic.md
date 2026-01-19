@@ -29,31 +29,35 @@
 * 本期交付的 Task：
 * Out of Scope：
 
-## 2.1 Story → Slice → Task 对齐表（必填）
+## 2.1 Story → Task 对齐表（必填）
 
-> 目的：避免“任务很多但不覆盖主路径/AC”，以及“无需求来源的任务混入版本”。
+> 目的：避免"任务很多但不覆盖主路径/AC"，以及"无需求来源的任务混入版本"。
 >
 > 规则：
-> * 本期纳入的每个 `TASK_ID` 必须关联一个 `STORY_ID` 与 `SLICE_ID`；
+> * 本期纳入的每个 `TASK_ID` 必须关联一个 `STORY_ID`；
 > * 允许例外：技术债/纯重构/基础设施任务可以标注 `NO_STORY`，但必须写清验收方式与真流程验证。
 
-| STORY_ID | SLICE_ID | TASK_ID 列表 | 本期纳入 | 验收责任人 | 备注 |
-|---|---|---|---|---|---|
-| STORY-{{EPIC_ID}}-001 | SLICE-{{EPIC_ID}}-001 | TASK-{{EPIC_ID}}-BE-001, TASK-{{EPIC_ID}}-FE-001 | ✅ | {{OWNER}} | 竖切闭环 P0 |
-| NO_STORY | SLICE-{{EPIC_ID}}-001 | TASK-{{EPIC_ID}}-DEBT-001 | ✅ | {{OWNER}} | 技术债，需写真流程验收 |
+| STORY_ID | TASK_ID 列表 | 本期纳入 | 验收责任人 | 备注 |
+|---|---|---|---|---|
+| STORY-{{EPIC_ID}}-001 | TASK-{{EPIC_ID}}-BE-001, TASK-{{EPIC_ID}}-FE-001 | ✅ | {{OWNER}} | 竖切闭环 P0 |
+| NO_STORY | TASK-{{EPIC_ID}}-DEBT-001 | ✅ | {{OWNER}} | 技术债，需写真流程验收 |
 
 ## 2.2 执行进度表（必填）
 
-> 目的：在 `PROJ` 里给出“一眼能读懂”的执行状态视图；详细实现与证据回写到对应 `TASK-*.md`。
+> 目的：在 `PROJ` 里给出"一眼能读懂"的执行状态视图；详细实现与证据回写到对应 `TASK-*.md`。
+>
+> ⚠️ **beads 关联要求**：
+> - 每个 TASK 必须填写 `BEADS_ID`
+> - 任务状态以 beads 系统为准（`TODO/DOING/BLOCKED/DONE`）
+> - beads 任务路径：`bd update <BEADS_ID> -s "doing/done"`
 >
 > 建议：
-> * `状态` 只用：`TODO/DOING/BLOCKED/DONE`
-> * 每周至少更新 2 次（或每次例会后更新）
-> * `证据` 一列直接链接到对应任务文档
+> - 每周至少更新 2 次（或每次例会后更新）
+> - `证据` 一列直接链接到对应任务文档
 
-| TASK_ID | 标题 | 优先级 | Owner | 状态 | 预计 | 截止 | 阻塞点 | 证据（TASK链接） |
-|---|---|---|---|---|---|---|---|---|
-| TASK-{{EPIC_ID}}-FE-001 |  | P0 |  | TODO |  |  |  | `../task/TASK-{{EPIC_ID}}-FE-001-*.md` |
+| TASK_ID | 标题 | 优先级 | Owner | 状态 | 预计 | 截止 | 阻塞点 | BEADS_ID | 证据（TASK链接） |
+|---|---|---|---|---|---|---|---|---|---|
+| TASK-{{EPIC_ID}}-FE-001 |  | P0 |  | TODO |  |  |  |  | `../task/TASK-{{EPIC_ID}}-FE-001-*.md` |
 
 ## 3. 资源配置
 
