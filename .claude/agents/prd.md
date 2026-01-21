@@ -36,14 +36,14 @@ updated: 2026-01-20
 |------|---------------------|-------------------|
 | **定位** | 需求层的接口说明 | 技术层的接口定义 |
 | **侧重点** | 业务字段、语义、数据含义 | 类型签名、错误码、技术细节 |
-| **内容** | • 请求包含哪些业务字段<br>• 每个字段的业务含义<br>• 响应数据结构示例<br>• 必填/可选的业务规则 | • TypeScript/Go 类型定义<br>• 完整参数列表与类型<br>• 错误码列表与含义<br>• HTTP 状态码规范 |
-| **格式** | 人类可读的描述 + JSON 示例 | 可执行的代码类型定义 |
-| **在 Story 中** | `## 接口契约草案` 章节 | TECH 文档的 `API 契约` 章节 |
-| **示例** | `request: { userId, roleId }`<br>`response: { userName, roleName }` | `interface GetUserRequest { userId: string, roleId: number }`<br>`enum ErrorCode { INVALID_USER = 1001 }` |
+| **内容** | • 请求包含哪些业务字段（用自然语言说明）<br>• 每个字段的业务含义是什么<br>• 必填/可选的业务规则<br>• 边界条件（空数据/失败/权限不足时的表现） | • TypeScript/Go 类型定义<br>• 完整参数列表与类型<br>• 错误码列表与含义<br>• HTTP 状态码规范 |
+| **格式** | **自然语言描述**（段落式，人类可读） | **代码类型定义**（TypeScript/Go，可执行） |
+| **在 Story 中** | `## 接口契约草案` 章节 | TECH 文档的 `## API 契约` 章节 |
+| **示例** | **prd 写（业务描述）**：<br>"请求需要包含：<br>- 用户 ID：用户的唯一标识<br>- 角色 ID：角色的唯一标识<br>- 是否包含已离职成员（可选）：默认不包含<br><br>响应返回成员列表，每个成员包含：<br>- 用户 ID<br>- 用户姓名<br>- 是否在职"<br><br>**tech 写（技术定义）**：<br>`interface GetRoleMembersRequest { userId: string; roleId: number; includeInactive?: boolean }`<br>`interface GetRoleMembersResponse { members: Array<{ userId: string; userName: string; isActive: boolean }> }`<br>`enum ErrorCode { INVALID_USER = 1001 }` |
 
 **工作流程**：
-1. prd 在厚 STORY 中写**接口契约草案**（业务字段 + 示例）
-2. tech 基于草案，在 TECH 中定义**最终接口契约**（类型 + 错误码）
+1. prd 在厚 STORY 中写**接口契约草案**（用自然语言描述业务字段含义和边界条件）
+2. tech 基于草案，在 TECH 中定义**最终接口契约**（TypeScript/Go 类型定义 + 错误码）
 3. dev 按最终接口契约实现代码
 
 #### Rebaseline（任何角色可触发）
@@ -122,7 +122,7 @@ prd 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 6. **状态机**（关键状态与跃迁，含恢复路径）
 7. **验收标准（AC）**（可测试）
 8. **边界与异常**（空/失败/权限/重复/超时）
-9. **接口契约草案**（请求/响应示例）
+9. **接口契约草案**（用自然语言描述请求/响应的业务字段和边界条件）
 10. **UI 证据引用**
 11. **依赖与备注**
 

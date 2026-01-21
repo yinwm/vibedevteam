@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commander Console - AI Agent Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --border-color: #374151;
+            --accent-amber: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* CRT Scanline Effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03) 0px,
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 1000;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-amber);
+        }
+
+        /* Glow Effects */
+        .glow-amber {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .glow-green {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Node Animation */
+        @keyframes pulse-node {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .node-pulse {
+            animation: pulse-node 2s ease-in-out infinite;
+        }
+
+        /* Status Indicator Animation */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-blink {
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        /* Terminal Cursor */
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .cursor::after {
+            content: '▋';
+            animation: cursor-blink 1s infinite;
+            color: var(--accent-amber);
+        }
+
+        /* Chat Animation */
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message {
+            animation: slide-in 0.3s ease-out;
+        }
+
+        /* Tree Node Styles */
+        .tree-node {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .tree-node::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--border-color);
+        }
+
+        .tree-node:last-child::before {
+            height: 16px;
+        }
+
+        .tree-connector {
+            position: absolute;
+            left: 8px;
+            top: 16px;
+            width: 16px;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        /* Grid Pattern Background */
+        .grid-pattern {
+            background-image:
+                linear-gradient(rgba(55, 65, 81, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(55, 65, 81, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Tab Active State */
+        .tab-active {
+            background: var(--bg-tertiary);
+            border-bottom: 2px solid var(--accent-amber);
+        }
+
+        /* Card Hover Effect */
+        .card-hover:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+        }
+
+        /* Input Focus */
+        input:focus {
+            outline: none;
+            border-color: var(--accent-amber);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col grid-pattern">
+    <div class="crt-overlay"></div>
+
+    <!-- Header -->
+    <header class="flex items-center justify-between px-6 py-3 bg-[#0d121d] border-b border-[#374151]">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">COMMANDER CONSOLE</h1>
+                    <p class="text-[10px] text-[#6b7280] tracking-widest">AI AGENT MANAGEMENT SYSTEM v2.4.1</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 text-xs">
+                <span class="text-[#6b7280]">活跃 AGENTS:</span>
+                <span class="text-cyan-400 font-bold" id="activeCount">3</span>
+                <span class="text-[#6b7280]">/</span>
+                <span class="text-[#6b7280]" id="totalCount">5</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <span class="w-2 h-2 rounded-full bg-green-500 status-blink"></span>
+                <span class="text-green-400">SYSTEM ONLINE</span>
+            </div>
+            <div class="text-[10px] text-[#6b7280]" id="currentTime"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col gap-1 p-2 overflow-hidden">
+        <!-- Top: Knowledge Graph -->
+        <section class="flex-1 min-h-0 bg-[#0d121d] border border-[#374151] rounded-lg overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-[#374151] bg-[#111827]">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span class="text-sm font-semibold">KNOWLEDGE GRAPH</span>
+                    <span class="text-[10px] text-[#6b7280] ml-2">▸ 视图: 逻辑关系树</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="expandAll()" class="px-2 py-1 text-[10px] bg-[#1f2937] hover:bg-[#374151] border border-[#374151] rounded transition-colors">全部展开</button>
+                    <button onclick="collapseAll()" class="px-2 py-1 text-[10px] bg-[#1f2937] hover:bg-[#374151] border border-[#374151] rounded transition-colors">全部折叠</button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-auto p-4" id="knowledgeGraph">
+                <!-- Tree content will be injected here -->
+            </div>
+        </section>
+
+        <!-- Bottom Split -->
+        <div class="flex-1 flex gap-1 min-h-0">
+            <!-- Bottom Left: Discussion Room -->
+            <section class="w-2/5 bg-[#0d121d] border border-[#374151] rounded-lg overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between px-4 py-2 border-b border-[#374151] bg-[#111827]">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        <span class="text-sm font-semibold">DISCUSSION ROOM</span>
+                    </div>
+                    <div class="text-[10px] text-[#6b7280]">▸ 规划大脑</div>
+                </div>
+
+                <!-- Agent Tabs -->
+                <div class="flex border-b border-[#374151] bg-[#0a0e17]" id="agentTabs">
+                    <!-- Tabs will be injected here -->
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="flex-1 overflow-auto p-4 space-y-3" id="chatMessages">
+                    <!-- Messages will be injected here -->
+                </div>
+
+                <!-- Input Area -->
+                <div class="p-3 border-t border-[#374151] bg-[#111827]">
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            id="chatInput"
+                            placeholder="输入消息给当前选中的 Agent..."
+                            class="flex-1 px-3 py-2 bg-[#0a0e17] border border-[#374151] rounded text-sm text-[#f3f4f6] placeholder-[#6b7280] transition-all"
+                            onkeypress="if(event.key === 'Enter') sendMessage()"
+                        >
+                        <button
+                            onclick="sendMessage()"
+                            class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold text-sm rounded transition-colors"
+                        >
+                            发送
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Right: Runtime Terminal -->
+            <section class="flex-1 bg-[#0d121d] border border-[#374151] rounded-lg overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between px-4 py-2 border-b border-[#374151] bg-[#111827]">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-sm font-semibold">RUNTIME TERMINAL</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-[10px]">
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            <span class="text-[#6b7280]">活跃:</span>
+                            <span class="text-green-400 font-bold">2</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span class="text-[#6b7280]">进行中:</span>
+                            <span class="text-amber-400 font-bold">1</span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+                            <span class="text-[#6b7280]">空闲:</span>
+                            <span class="text-gray-400 font-bold">1</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-auto p-4 space-y-3" id="terminalCards">
+                    <!-- Terminal cards will be injected here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="flex items-center justify-between px-4 py-1 bg-[#0d121d] border-t border-[#374151] text-[10px]">
+        <div class="flex items-center gap-4">
+            <span class="text-[#6b7280]">EPIC: E-001</span>
+            <span class="text-[#6b7280]">|</span>
+            <span class="text-[#6b7280]">BRANCH: feature/auto-flow</span>
+            <span class="text-[#6b7280]">|</span>
+            <span class="text-green-400">✓ 3 待处理任务</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-[#6b7280]">MEM: 2.4GB</span>
+            <span class="text-[#6b7280]">|</span>
+            <span class="text-[#6b7280]">CPU: 12%</span>
+        </div>
+    </footer>
+
+    <script>
+        // ==================== DATA ====================
+        const knowledgeData = {
+            id: 'epic-001',
+            type: 'EPIC',
+            title: 'E-001: 移动端 App',
+            status: 'active',
+            assignee: 'Tiger',
+            children: [
+                {
+                    id: 'prd-v1',
+                    type: 'PRD',
+                    title: 'PRD-v1: 需求规格',
+                    status: 'completed',
+                    assignee: 'Tiger',
+                    children: [
+                        {
+                            id: 'story-101',
+                            type: 'STORY',
+                            title: 'STORY-101: 用户登录',
+                            status: 'completed',
+                            assignee: 'Tiger',
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: 'tech-v1',
+                    type: 'TECH',
+                    title: 'TECH-v1: 技术方案',
+                    status: 'completed',
+                    assignee: 'Dave-1',
+                    children: [
+                        {
+                            id: 'api-schema',
+                            type: 'SCHEMA',
+                            title: 'API-Schema: Auth接口定义',
+                            status: 'completed',
+                            assignee: 'Dave-1',
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: 'slice-001',
+                    type: 'SLICE',
+                    title: 'SLICE-001: 登录页闭环',
+                    status: 'active',
+                    assignee: 'Tiger',
+                    children: [
+                        {
+                            id: 'task-01',
+                            type: 'TASK',
+                            title: 'TASK-01: 后端 API 实现',
+                            status: 'completed',
+                            assignee: 'Dave-1',
+                            children: []
+                        },
+                        {
+                            id: 'task-02',
+                            type: 'TASK',
+                            title: 'TASK-02: iOS 页面',
+                            status: 'in-progress',
+                            assignee: 'Dave-2',
+                            children: []
+                        },
+                        {
+                            id: 'task-03',
+                            type: 'TASK',
+                            title: 'TASK-03: 集成测试',
+                            status: 'pending',
+                            assignee: 'Terry',
+                            children: []
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const agents = [
+            { id: 'tiger', name: 'Tiger', role: '规划/PRD', status: 'active', avatar: '🐯' },
+            { id: 'dave-1', name: 'Dave-1', role: '后端开发', status: 'idle', avatar: '🔧' },
+            { id: 'dave-2', name: 'Dave-2', role: 'iOS 开发', status: 'active', avatar: '📱' },
+            { id: 'terry', name: 'Terry', role: 'QA/测试', status: 'offline', avatar: '🧪' }
+        ];
+
+        const chatHistory = {
+            tiger: [
+                { from: 'user', text: 'PRD 和 Tech 都好了。让我们定义 SLICE-001。', time: '14:23:05' },
+                { from: 'agent', text: '好的。SLICE-001 将包含:\n1. STORY-101\n2. Auth接口实现\n3. iOS 登录页面\n4. 集成测试', time: '14:23:12' },
+                { from: 'user', text: '太好了，开始分配任务吧。', time: '14:23:20' }
+            ],
+            'dave-1': [
+                { from: 'agent', text: '后端 API 已经完成。Auth 接口部署在 https://api.example.com/v1/auth', time: '14:15:30' },
+                { from: 'user', text: '收到，我让 Dave-2 开始对接。', time: '14:16:00' }
+            ],
+            'dave-2': [
+                { from: 'user', text: 'Dave-1 的 API 已经好了，可以开始对接了。', time: '14:20:00' },
+                { from: 'agent', text: '收到！开始实现 iOS 登录页面。预计 30 分钟内完成。', time: '14:20:15' }
+            ],
+            terry: [
+                { from: 'agent', text: '测试环境已就绪。等 Dave-2 完成后立即开始集成测试。', time: '14:10:00' }
+            ]
+        };
+
+        const terminals = [
+            {
+                agentId: 'dave-1',
+                agentName: 'Dave-1',
+                role: '后端开发',
+                status: 'idle',
+                currentTask: 'TASK-01: 后端 API 实现',
+                output: [
+                    { type: 'info', text: '[14:15:20] Building auth-service...' },
+                    { type: 'success', text: '[14:15:25] ✓ Build completed in 4.2s' },
+                    { type: 'info', text: '[14:15:26] Running tests...' },
+                    { type: 'success', text: '[14:15:30] ✓ All 12 tests passed' },
+                    { type: 'info', text: '[14:15:31] Deploying to staging...' },
+                    { type: 'success', text: '[14:15:35] ✓ Deployed successfully' },
+                    { type: 'muted', text: '[14:23:00] Waiting for next task...' }
+                ]
+            },
+            {
+                agentId: 'dave-2',
+                agentName: 'Dave-2',
+                role: 'iOS 开发',
+                status: 'active',
+                currentTask: 'TASK-02: iOS 页面',
+                output: [
+                    { type: 'info', text: '[14:20:15] Starting iOS implementation...' },
+                    { type: 'info', text: '[14:20:20] Creating LoginViewController...' },
+                    { type: 'success', text: '[14:21:00] ✓ UI layout completed' },
+                    { type: 'info', text: '[14:21:05] Integrating Auth API...' },
+                    { type: 'info', text: '[14:22:30] Testing login flow...' },
+                    { type: 'warning', text: '[14:22:45] ⚠ Token refresh needs adjustment' },
+                    { type: 'info', text: '[14:23:10] Fixing token handling...' },
+                    { type: 'success', text: '[14:23:25] ✓ Token refresh fixed' }
+                ]
+            },
+            {
+                agentId: 'terry',
+                agentName: 'Terry',
+                role: 'QA/测试',
+                status: 'offline',
+                currentTask: 'TASK-03: 集成测试',
+                output: [
+                    { type: 'info', text: '[14:10:00] Test environment ready' },
+                    { type: 'muted', text: '[14:10:01] Waiting for implementation...' }
+                ]
+            }
+        ];
+
+        // ==================== STATE ====================
+        let currentAgent = 'tiger';
+        let expandedNodes = new Set(['epic-001', 'prd-v1', 'tech-v1', 'slice-001']);
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderKnowledgeGraph() {
+            const container = document.getElementById('knowledgeGraph');
+            container.innerHTML = renderNode(knowledgeData, 0);
+        }
+
+        function renderNode(node, level) {
+            const isExpanded = expandedNodes.has(node.id);
+            const hasChildren = node.children && node.children.length > 0;
+
+            const typeColors = {
+                'EPIC': 'text-amber-500',
+                'PRD': 'text-blue-400',
+                'TECH': 'text-purple-400',
+                'SLICE': 'text-cyan-400',
+                'TASK': 'text-green-400',
+                'STORY': 'text-pink-400',
+                'SCHEMA': 'text-yellow-400'
+            };
+
+            const statusIcons = {
+                'active': '<span class="w-2 h-2 rounded-full bg-green-500 status-blink inline-block mr-2"></span>',
+                'completed': '<span class="w-2 h-2 rounded-full bg-cyan-400 inline-block mr-2"></span>',
+                'in-progress': '<span class="w-2 h-2 rounded-full bg-amber-500 status-blink inline-block mr-2"></span>',
+                'pending': '<span class="w-2 h-2 rounded-full bg-gray-500 inline-block mr-2"></span>',
+                'blocked': '<span class="w-2 h-2 rounded-full bg-red-500 inline-block mr-2"></span>'
+            };
+
+            const typeIcons = {
+                'EPIC': '📋',
+                'PRD': '📘',
+                'TECH': '📙',
+                'SLICE': '🔪',
+                'TASK': '✅',
+                'STORY': '📄',
+                'SCHEMA': '🏗️'
+            };
+
+            let html = `
+                <div class="tree-node ${level > 0 ? 'mt-1' : ''}">
+                    ${level > 0 ? '<div class="tree-connector"></div>' : ''}
+                    <div
+                        class="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-[#1f2937] cursor-pointer transition-colors ${isExpanded ? 'bg-[#1f2937]' : ''}"
+                        style="padding-left: ${level * 8}px"
+                        onclick="toggleNode('${node.id}')"
+                    >
+                        ${hasChildren ? `
+                            <svg class="w-3 h-3 text-[#6b7280] transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/>
+                            </svg>
+                        ` : '<span class="w-3"></span>'}
+                        ${statusIcons[node.status] || ''}
+                        <span class="${typeColors[node.type] || 'text-[#9ca3af]'}">${typeIcons[node.type] || '📄'}</span>
+                        <span class="text-sm ${node.status === 'active' ? 'font-semibold text-[#f3f4f6]' : 'text-[#9ca3af]'}">${node.title}</span>
+                        ${node.assignee ? `<span class="text-[10px] text-[#6b7280] ml-auto">@${node.assignee}</span>` : ''}
+                    </div>
+                    ${hasChildren && isExpanded ? `
+                        <div class="ml-2">
+                            ${node.children.map(child => renderNode(child, level + 1)).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            return html;
+        }
+
+        function renderAgentTabs() {
+            const container = document.getElementById('agentTabs');
+            container.innerHTML = agents.map(agent => {
+                const isActive = agent.id === currentAgent;
+                const statusColor = {
+                    'active': 'bg-green-500',
+                    'idle': 'bg-gray-500',
+                    'offline': 'bg-red-500'
+                }[agent.status];
+
+                return `
+                    <button
+                        onclick="switchAgent('${agent.id}')"
+                        class="flex items-center gap-2 px-4 py-2 text-xs font-medium transition-colors ${isActive ? 'tab-active' : 'hover:bg-[#1f2937]'}"
+                    >
+                        <span class="w-2 h-2 rounded-full ${statusColor} ${agent.status === 'active' ? 'status-blink' : ''}"></span>
+                        <span>${agent.avatar}</span>
+                        <span>${agent.name}</span>
+                        <span class="text-[10px] text-[#6b7280]">${agent.role}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chatMessages');
+            const messages = chatHistory[currentAgent] || [];
+
+            container.innerHTML = messages.map(msg => {
+                const isUser = msg.from === 'user';
+                return `
+                    <div class="chat-message flex ${isUser ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[80%] ${isUser ? 'bg-amber-500/20 border-amber-500/30' : 'bg-[#1f2937] border-[#374151]'} border rounded-lg px-3 py-2">
+                            ${!isUser ? `<div class="text-[10px] text-cyan-400 mb-1">${agents.find(a => a.id === currentAgent)?.name || 'Agent'}</div>` : ''}
+                            <div class="text-sm text-[#f3f4f6] whitespace-pre-line">${msg.text}</div>
+                            <div class="text-[10px] text-[#6b7280] mt-1 text-right">${msg.time}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function renderTerminals() {
+            const container = document.getElementById('terminalCards');
+            container.innerHTML = terminals.map(term => {
+                const statusConfig = {
+                    'active': { color: 'green', label: '活跃' },
+                    'idle': { color: 'gray', label: '空闲' },
+                    'offline': { color: 'red', label: '离线' }
+                }[term.status];
+
+                const agent = agents.find(a => a.id === term.agentId);
+
+                return `
+                    <div class="bg-[#111827] border border-[#374151] rounded-lg overflow-hidden card-hover transition-all">
+                        <div class="flex items-center justify-between px-3 py-2 border-b border-[#374151] bg-[#0a0e17]">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">${agent?.avatar || '🤖'}</span>
+                                <div>
+                                    <div class="text-sm font-semibold">${term.agentName}</div>
+                                    <div class="text-[10px] text-[#6b7280]">${term.role}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-${statusConfig.color}-500 ${term.status === 'active' ? 'status-blink' : ''}"></span>
+                                <span class="text-[10px] text-${statusConfig.color}-400">${statusConfig.label}</span>
+                            </div>
+                        </div>
+                        <div class="px-3 py-1 bg-[#0a0e17] border-b border-[#374151]">
+                            <div class="text-[10px] text-[#6b7280]">任务: <span class="text-amber-400">${term.currentTask}</span></div>
+                        </div>
+                        <div class="p-3 bg-[#0d121d] h-32 overflow-auto font-mono text-[11px] leading-relaxed">
+                            ${term.output.map(line => {
+                                const colorClass = {
+                                    'info': 'text-[#9ca3af]',
+                                    'success': 'text-green-400',
+                                    'warning': 'text-amber-400',
+                                    'error': 'text-red-400',
+                                    'muted': 'text-[#4b5563]'
+                                }[line.type];
+
+                                return `<div class="${colorClass}">${line.text}</div>`;
+                            }).join('')}
+                            ${term.status === 'active' ? '<div class="text-amber-400 cursor">_</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== ACTIONS ====================
+        function toggleNode(nodeId) {
+            if (expandedNodes.has(nodeId)) {
+                expandedNodes.delete(nodeId);
+            } else {
+                expandedNodes.add(nodeId);
+            }
+            renderKnowledgeGraph();
+        }
+
+        function expandAll() {
+            function addAllIds(node) {
+                expandedNodes.add(node.id);
+                node.children?.forEach(addAllIds);
+            }
+            addAllIds(knowledgeData);
+            renderKnowledgeGraph();
+        }
+
+        function collapseAll() {
+            expandedNodes.clear();
+            expandedNodes.add(knowledgeData.id);
+            renderKnowledgeGraph();
+        }
+
+        function switchAgent(agentId) {
+            currentAgent = agentId;
+            renderAgentTabs();
+            renderChatMessages();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+            if (!chatHistory[currentAgent]) {
+                chatHistory[currentAgent] = [];
+            }
+
+            chatHistory[currentAgent].push({
+                from: 'user',
+                text: text,
+                time: time
+            });
+
+            input.value = '';
+            renderChatMessages();
+
+            // Simulate agent response
+            setTimeout(() => {
+                const responses = [
+                    '收到，正在处理...',
+                    '好的，我来处理这个任务。',
+                    '明白，立即开始执行。',
+                    '已记录，马上跟进。'
+                ];
+                chatHistory[currentAgent].push({
+                    from: 'agent',
+                    text: responses[Math.floor(Math.random() * responses.length)],
+                    time: time
+                });
+                renderChatMessages();
+            }, 1000);
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('currentTime').textContent = timeStr;
+        }
+
+        // ==================== SIMULATION ====================
+        function simulateTerminalOutput() {
+            setInterval(() => {
+                terminals.forEach(term => {
+                    if (term.status === 'active') {
+                        const messages = [
+                            { type: 'info', text: `[${new Date().toLocaleTimeString('en-GB')}] Processing...` },
+                            { type: 'success', text: `[${new Date().toLocaleTimeString('en-GB')}] ✓ Step completed` },
+                            { type: 'info', text: `[${new Date().toLocaleTimeString('en-GB')}] Running checks...` }
+                        ];
+                        const newMsg = messages[Math.floor(Math.random() * messages.length)];
+                        term.output.push(newMsg);
+                        if (term.output.length > 20) term.output.shift();
+                    }
+                });
+                renderTerminals();
+            }, 3000);
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            renderKnowledgeGraph();
+            renderAgentTabs();
+            renderChatMessages();
+            renderTerminals();
+            updateTime();
+            setInterval(updateTime, 1000);
+            simulateTerminalOutput();
+        }
+
+        init();
+    </script>
+</body>
+</html>

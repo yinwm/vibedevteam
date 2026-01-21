@@ -41,7 +41,7 @@
 | **prd** | `tpl-story.md` | `/docs/{{EPIC_DIR}}/story/STORY-*.md` | 用户故事（厚 Story：主路径/状态机/AC/边界/契约） |
 | **tech** | `tpl-tech-epic.md` | `/docs/{{EPIC_DIR}}/tech/TECH-{{EPIC_ID}}-v{{N}}.md` | Epic 技术方案（现状/方案/设计/NFR/TASK 建议） |
 | **tech/proj** | `tpl-task.md` | `/docs/{{EPIC_DIR}}/task/TASK-*.md` | 任务卡片（可执行、可验收） |
-| **tech** | `tpl-code-review-tech.md | 评审时使用 | 代码评审检查项（复用/基线/架构/迁移/NFR） |
+| **tech** | `tpl-code-review-tech.md` | 评审时使用 | 代码评审检查项（复用/基线/架构/迁移/NFR） |
 | **proj** | `tpl-proj-epic.md` | `/docs/{{EPIC_DIR}}/proj/PROJ-{{EPIC_ID}}-v{{N}}.md` | Epic 项目计划（范围/排期/里程碑/Gate） |
 | **proj** | `tpl-proj-roadmap.md` | `/docs/_project/proj-roadmap.md` | 业务线 Roadmap（多 Epic 优先级/排期） |
 

@@ -35,21 +35,26 @@ description: 模拟运行检查，验证 STORY → TECH → TASK 链路是否完
 ### Step 2: 读取链路
 
 按顺序读取：
-1. PRD：`docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v1.md`
-2. STORY：`docs/{{EPIC_DIR}}/story/STORY-*.md`
-3. TECH：`docs/{{EPIC_DIR}}/tech/TECH-{{EPIC_ID}}-v1.md`
-4. PROJ：`docs/{{EPIC_DIR}}/proj/PROJ-{{EPIC_ID}}-v1.md`
-5. TASK：`docs/{{EPIC_DIR}}/task/TASK-*.md`
+1. **BIZ（可选）**：`docs/{{EPIC_DIR}}/biz/BIZ-E-{{EPIC_ID}}-v0.md`
+   - 如果不存在，跳过（简单 Epic 可能没有 Epic 级 biz-overview）
+2. **项目级 BIZ**：`docs/_project/biz-overview.md`
+   - 检查项目级 Gate A 是否通过
+3. PRD：`docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v0.md` 或 `PRD-{{EPIC_ID}}-v1.md`
+4. STORY：`docs/{{EPIC_DIR}}/story/STORY-*.md`
+5. TECH：`docs/{{EPIC_DIR}}/tech/TECH-{{EPIC_ID}}-v0.md` 或 `TECH-{{EPIC_ID}}-v1.md`
+6. PROJ：`docs/{{EPIC_DIR}}/proj/PROJ-{{EPIC_ID}}-v1.md`
+7. TASK：`docs/{{EPIC_DIR}}/task/TASK-*.md`
 
 ### Step 3: 执行链路检查
 
-使用 `链路检查.md` 中的 6 步检查：
-1. PRD → STORY
-2. STORY → TECH
-3. STORY → TASK
-4. TASK 依赖
-5. TASK 验收 → STORY AC
-6. 真流程验证
+使用 `链路检查.md` 中的 7 步检查：
+1. **BIZ → PRD**（可选）：如果有 Epic 级 biz-overview，检查 PRD 是否能追溯到 BIZ
+2. PRD → STORY
+3. STORY → TECH
+4. STORY → TASK
+5. TASK 依赖
+6. TASK 验收 → STORY AC
+7. 真流程验证
 
 ### Step 4: 输出报告
 

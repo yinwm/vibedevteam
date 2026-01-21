@@ -15,9 +15,13 @@ updated: 2026-01-20
 ### 核心规则摘要（从 workflow-overview.md 提取）
 
 #### Phase A：方向对齐（biz-owner 负责）
-- 产物：`/docs/_project/biz-overview.md`（允许大量 `[OPEN]`）
+- **产物（项目级）**：`/docs/_project/biz-overview.md`（允许大量 `[OPEN]`）
+- **产物（Epic 级，可选）**：`/docs/{{EPIC_DIR}}/biz/BIZ-E-{{EPIC_ID}}-v0.md`
+  - 复杂 Epic 需要先写 Epic 级 biz-overview
+  - 简单 Epic 可以跳过，直接从 PRD v0 开始
 - 明确本 Epic 的 In/Out、MVP、止损信号
-- **Gate A**（进入 PRD v0 前必须满足）：目标/范围/非目标能被复述，且存在止损信号
+- **Gate A（项目级）**：进入任何 Epic 前必须满足（目标/范围/非目标能被复述，且存在止损信号）
+- **Gate A（Epic 级，可选）**：复杂 Epic 需要先通过 Epic 级 Gate A
 
 #### 后续流程（biz-owner 需知晓）
 - Phase B：prd 产出 PRD v0 + UI 证据
@@ -33,9 +37,12 @@ updated: 2026-01-20
 
 ## 0. 能力卡片（速查）
 
-* **定位**：把“想法/机会”变成可决策的业务方案（做不做、先做什么、做到哪）。
+* **定位**：把"想法/机会"变成可决策的业务方案（做不做、先做什么、做到哪）。
 * **核心产出**：
-  * `docs/lib/templates/tpl-biz-overview.md` 对应的 `biz-overview.md` 草稿（路径：`/docs/_project/biz-overview.md`，沿用 biz-overview 模板）
+  * **项目级**：`/docs/_project/biz-overview.md`（项目整体业务方向）
+  * **Epic 级（可选）**：`/docs/{{EPIC_DIR}}/biz/BIZ-E-{{EPIC_ID}}-v0.md`
+    - 复杂 Epic（需要深入业务分析的）应该先写 Epic 级 biz-overview
+    - 简单 Epic 可以跳过，直接从 PRD v0 开始
   * （可选）多项目优先级 + 粗 Roadmap 草图（用于喂给 `prd/tech/proj`，不替代 `proj-roadmap.md` 的正式规划）
 * **典型输入**：现状与痛点、候选方向/功能清单、资源/时间/合规约束、已有数据/经验。
 * **关键判断**：
@@ -56,28 +63,30 @@ biz-owner 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）�
 
 | 模板文件 | 用途 | 输出路径 | 关键章节 |
 |---------|------|---------|---------|
-| `tpl-biz-overview.md` | 业务概览 | `/docs/_project/biz-overview.md` | 背景与核心问题、商业模式与目标用户、业务结果指标、Epic 列表与优先级 |
+| `tpl-biz-overview.md` | 项目级业务概览 | `/docs/_project/biz-overview.md` | 项目愿景、Epic Roadmap、项目级 Gate A |
+| `tpl-biz-epic.md` | Epic 级业务概览（可选） | `/docs/{{EPIC_DIR}}/biz/BIZ-E-{{EPIC_ID}}-v0.md` | Epic 业务背景、痛点分析、Epic 级 Gate A |
 
 **变量说明**：
-- 无特定变量（项目级文档，非 Epic 级）
+- `{{EPIC_ID}}`：Epic 编号（如 E-001）
+- `{{EPIC_DIR}}`：Epic 目录名（如 E-001-Agent-Console）
 
-**tpl-biz-overview.md 内容结构**（输出时按此结构）：
-1. **背景与核心问题**：现状、痛点、为什么现在做
-2. **商业模式与目标用户**：
-   - 目标用户/角色
-   - 价值主张（差异化）
-   - 收入/成本模型（如适用）
-3. **业务结果指标与止损信号**：
-   - 业务结果指标（G/KPI）
-   - 指标口径（怎么算）
-   - 反证信号（什么情况说明假设错了）
-   - 止损信号（什么情况要停下来）
-4. **Epic 列表与优先级**：
-   - Epic ID 与名称
-   - 优先级（P0/P1/P2）
-   - 依赖关系
-   - 粗估价值/成本（如已知）
-5. **风险与假设**：
+**什么时候需要 Epic 级 biz-overview？**
+- ✅ 需要：复杂 Epic（需要深入业务分析、有多个 P1/P2/P3 痛点）
+- ❌ 不需要：简单 Epic（功能增强、Bug 修复、技术优化）
+
+**tpl-biz-overview.md 内容结构**（项目级）：
+1. **项目愿景**：使命、核心价值、目标用户
+2. **Epic Roadmap**：Epic 列表与优先级
+3. **项目级 Gate A**：进入任何 Epic 前必须满足
+4. **项目级止损信号**：什么情况要停止整个项目
+
+**tpl-biz-epic.md 内容结构**（Epic 级）：
+1. **Epic 业务背景**：现状、痛点、为什么现在做
+2. **痛点分析**：P1/P2/P3 核心痛点
+3. **业务目标与指标**：G1-G5 目标值
+4. **范围与非目标**：In Scope（MVP）和 Out of Scope
+5. **Epic 级 Gate A**：进入 PRD v0 前必须满足
+6. **Epic 级止损信号**：什么情况要停止这个 Epic
    - 关键假设
    - 验证计划
    - 风险与预案
