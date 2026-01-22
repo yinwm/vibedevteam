@@ -5,14 +5,22 @@ description: 模拟运行检查，验证 STORY → TECH → TASK 链路是否完
 
 # VibeDevTeam: 模拟运行检查
 
+## 核心原则
+
+**必须读取文件内容并分析语义**，不能只走流程。每一步检查都要：
+1. 真正读取文件内容
+2. 提取关键信息（接口名、AC、依赖等）
+3. 做交叉比对，找出不一致
+4. 输出具体证据（引用原文）
+
 ## 快速开始
 
 当用户要求 dry run 或模拟运行时：
 
 1. **确认检查范围**：STORY_ID 或 EPIC
-2. **读取链路检查**：加载 `链路检查.md`
-3. **执行模拟**：从 STORY 出发，模拟完整链路
-4. **输出报告**：按 `报告模板.md` 格式输出
+2. **读取并提取内容**：读取所有相关文件，提取关键信息
+3. **交叉比对分析**：对比各文档内容，找出断链和不一致
+4. **输出报告**：按 `报告模板.md` 格式输出，附带原文证据
 
 ## 触发条件
 
@@ -32,36 +40,79 @@ description: 模拟运行检查，验证 STORY → TECH → TASK 链路是否完
 整个 EPIC：E-001
 ```
 
-### Step 2: 读取链路
+### Step 2: 读取文件并提取内容
 
-按顺序读取：
-1. **BIZ（可选）**：`docs/{{EPIC_DIR}}/biz/BIZ-E-{{EPIC_ID}}-v0.md`
-   - 如果不存在，跳过（简单 Epic 可能没有 Epic 级 biz-overview）
+**必须用 Read 工具读取每个文件的完整内容**，然后提取：
+
+#### 2.1 读取文件（按顺序）
+
+1. **BIZ（可选）**：`docs/{{EPIC_DIR}}/biz-overview.md`
 2. **项目级 BIZ**：`docs/_project/biz-overview.md`
-   - 检查项目级 Gate A 是否通过
-3. PRD：`docs/{{EPIC_DIR}}/prd/PRD-{{EPIC_ID}}-v0.md` 或 `PRD-{{EPIC_ID}}-v1.md`
-4. STORY：`docs/{{EPIC_DIR}}/story/STORY-*.md`
-5. TECH：`docs/{{EPIC_DIR}}/tech/TECH-{{EPIC_ID}}-v0.md` 或 `TECH-{{EPIC_ID}}-v1.md`
-6. PROJ：`docs/{{EPIC_DIR}}/proj/PROJ-{{EPIC_ID}}-v1.md`
-7. TASK：`docs/{{EPIC_DIR}}/task/TASK-*.md`
+3. **PRD**：`docs/{{EPIC_DIR}}/PRD/PRD-v0.md` 或 `PRD-v1.md`
+4. **STORY**：`docs/{{EPIC_DIR}}/STORY/STORY-*.md`
+5. **TECH**：`docs/{{EPIC_DIR}}/TECH/TECH-v0.md` 或 `TECH-v1.md`
+6. **PROJ**：`docs/{{EPIC_DIR}}/PROJ/PROJ-v1.md`
+7. **TASK**：`docs/{{EPIC_DIR}}/TASK/TASK-*.md`
 
-### Step 3: 执行链路检查
+#### 2.2 从每个文件提取关键信息
 
-使用 `链路检查.md` 中的 7 步检查：
-1. **BIZ → PRD**（可选）：如果有 Epic 级 biz-overview，检查 PRD 是否能追溯到 BIZ
-2. PRD → STORY
-3. STORY → TECH
-4. STORY → TASK
-5. TASK 依赖
-6. TASK 验收 → STORY AC
-7. 真流程验证
+| 文档类型 | 提取内容 |
+|---------|---------|
+| **BIZ** | 痛点列表、业务目标、成功标准、范围边界 |
+| **PRD** | 功能列表(F1/F2...)、AC、In/Out 范围、用户故事 |
+| **STORY** | 故事描述、AC 列表、涉及的接口/页面、边界条件 |
+| **TECH** | API 定义（路径、方法、参数、响应）、数据模型、技术约束 |
+| **TASK** | 任务描述、依赖关系、验收标准、关联的 STORY |
+
+### Step 3: 交叉比对分析（内容级别）
+
+**每一步都要引用原文作为证据**：
+
+#### 3.1 PRD → STORY
+
+- 逐条检查 PRD 的功能描述，在 STORY 中找对应实现
+- 检查 PRD 的 AC，确认每条都有 STORY 覆盖
+- **输出**：`PRD 第 X 行提到 "xxx"，STORY-001 第 Y 行对应 "yyy"`
+
+#### 3.2 STORY → TECH
+
+- 从 STORY 中提取所有提到的接口/API
+- 在 TECH 中查找对应的接口定义
+- **输出**：`STORY-001 提到 "获取群列表"，TECH 第 X 行定义了 GET /api/groups`
+- **问题示例**：`STORY-002 提到 "删除成员接口"，但 TECH 中未找到对应定义 → P0`
+
+#### 3.3 STORY → TASK
+
+- 列出 STORY 的所有 AC
+- 检查每个 AC 是否有对应的 TASK
+- **输出**：`STORY-001 AC-1 "用户可以查看列表" → TASK-001 "实现列表页面"`
+- **问题示例**：`STORY-001 AC-3 未找到对应 TASK → P0`
+
+#### 3.4 TASK 依赖检查
+
+- 画出 TASK 依赖图
+- 检测循环依赖
+- 分析关键路径
+- **输出**：`TASK-001 → TASK-002 → TASK-003，无循环依赖`
+
+#### 3.5 TASK 验收 → STORY AC
+
+- 检查每个 TASK 的验收标准
+- 确认验收标准具体、可测试
+- **问题示例**：`TASK-002 验收标准 "功能正常" 太模糊 → P1`
+
+#### 3.6 真流程验证
+
+- 模拟用户从头到尾走一遍流程
+- 找出流程断点
+- **输出**：`用户打开页面 → 点击按钮 → 调用 API → 返回结果，流程完整`
 
 ### Step 4: 输出报告
 
-按 `报告模板.md` 格式输出，包含：
+按 `报告模板.md` 格式输出，**必须包含**：
 - 检查结果汇总
-- P0/P1/P2 问题列表
-- 改进建议
+- P0/P1/P2 问题列表（附带原文引用）
+- 改进建议（具体到哪个文件哪一行）
 
 ## 问题级别
 
@@ -76,42 +127,91 @@ description: 模拟运行检查，验证 STORY → TECH → TASK 链路是否完
 ## 示例对话
 
 ```
-用户：dry run STORY-001
+用户：dry run E-001
 
 Claude：
-好的，我来做 STORY-001 的模拟运行检查。
+好的，我来做 E-001 的模拟运行检查。
 
-[读取 PRD, STORY, TECH, PROJ, TASK]
+**Step 1: 读取文件内容**
 
-# 模拟运行报告：STORY-001
+[使用 Read 工具读取以下文件]
+- docs/E-001/PRD/PRD-v0.md
+- docs/E-001/STORY/STORY-001.md
+- docs/E-001/TECH/TECH-v0.md
+- docs/E-001/TASK/TASK-001.md
+
+**Step 2: 提取关键信息**
+
+从 PRD-v0.md 提取：
+- F1: 用户可以查看群列表
+- F2: 用户可以创建新群组
+- AC: "列表显示群名称、成员数、创建时间"
+
+从 STORY-001.md 提取：
+- 描述: "作为用户，我想查看我的群列表"
+- AC-1: 显示群名称和成员数
+- AC-2: 支持下拉刷新
+- 提到接口: "调用获取群列表 API"
+
+从 TECH-v0.md 提取：
+- API 定义: GET /api/v1/groups（返回群列表）
+- 无删除群成员接口定义
+
+从 TASK-001.md 提取：
+- 描述: 实现群列表页面
+- 验收: "页面能正常显示"
+- 依赖: 无
+
+**Step 3: 交叉比对分析**
+
+# 模拟运行报告：E-001
 
 ## 链路检查结果
 
 ### 1. PRD → STORY
-✓ PRD 有 F1 描述对应 STORY-001
-✓ PRD AC 可追溯到 STORY
+✓ PRD 第 15 行 "F1: 用户可以查看群列表"
+  → STORY-001 第 3 行 "作为用户，我想查看我的群列表"
+✓ PRD AC "列表显示群名称、成员数"
+  → STORY-001 AC-1 覆盖
 
 ### 2. STORY → TECH
-✗ STORY-001 提到"获取群列表接口"
-✗ TECH 没有定义这个接口
-→ P0 问题
+✓ STORY-001 提到 "获取群列表 API"
+  → TECH 第 28 行定义 GET /api/v1/groups
+✗ STORY-002 第 12 行提到 "删除成员接口"
+  → TECH 中未找到对应定义
+  → **P0 问题**
 
-...
+### 3. STORY → TASK
+✓ STORY-001 AC-1 → TASK-001 覆盖
+✗ STORY-001 AC-2 "支持下拉刷新"
+  → 未找到对应 TASK
+  → **P0 问题**
+
+### 4. TASK 验收
+✗ TASK-001 验收标准 "页面能正常显示" 太模糊
+  → 应改为 "显示群名称、成员数，数据与 API 返回一致"
+  → **P1 问题**
 
 ## 发现的问题
 
-### P0 - 阻塞
-1. TECH 缺少"获取群列表接口"定义
+### P0 - 阻塞（必须修复）
+| 问题 | 位置 | 证据 |
+|------|------|------|
+| TECH 缺少删除成员接口 | STORY-002:12 | "删除成员接口" |
+| AC-2 无对应 TASK | STORY-001:8 | "支持下拉刷新" |
 
-### P1 - 严重
-1. STORY-001 异常态描述不足
+### P1 - 严重（建议修复）
+| 问题 | 位置 | 证据 |
+|------|------|------|
+| 验收标准模糊 | TASK-001:15 | "页面能正常显示" |
 
 ## 建议
 
-1. 补充 TECH-E-001-v1.md 接口契约
-2. 细化 STORY-001 边界描述
+1. 在 TECH-v0.md 第 40 行后补充 `DELETE /api/v1/groups/{id}/members/{uid}` 接口定义
+2. 新增 TASK-002：实现下拉刷新功能
+3. 修改 TASK-001 验收标准为具体可测试的描述
 
-**整体结论**：需修复后通过
+**整体结论**：发现 2 个 P0 问题，需修复后通过
 ```
 
 ## 资源
