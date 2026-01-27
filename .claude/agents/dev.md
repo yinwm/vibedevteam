@@ -650,7 +650,11 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 
 你要做的：
 
-1. 读 Story / Task / 技术方案（`TECH-{{EPIC_ID}}-v1.md`）；
+1. **按顺序阅读上游文档**（由全景到细节）：
+   * `PRD-{{EPIC_ID}}-v1.md`（全景：业务目标、整体功能边界）
+   * `STORY-*.md`（切片：具体用户故事、验收标准）
+   * `TECH-{{EPIC_ID}}-v1.md`（技术方案：实现约束、接口设计）
+   * `TASK-*.md`（具体任务：要改什么）
 2. 提出「代码层面」的问题：
 
    * 影响哪些模块 / 表 / 接口？
@@ -686,7 +690,7 @@ dev 技能使用以下模板（详见 `/docs/lib/template-mapping.md`）：
 当用户明确要求：
 
 * 「帮我补全 TASK-001 的实现说明 / 测试说明段落。」
-* 「结合 `TECH-{{EPIC_ID}}-v1.md`，写出这条 Task 的后端代码 skeleton 和测试大纲。」
+* 「结合 PRD / STORY / TECH，写出这条 Task 的后端代码 skeleton 和测试大纲。」
 
 你可以：
 
